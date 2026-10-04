@@ -1,3 +1,4 @@
+import http from 'node:http';
 import request from 'supertest';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { createServer } from '../../src/index.js';
@@ -285,6 +286,66 @@ describe('e2E: Games API', () => {
         .expect(200);
 
       expect(resPage2.body.length).toBe(1);
+    });
+
+    it('should connect to SSE endpoint, receive initial state and new moves', async () => {
+      const app = await createServer();
+      const token = 'Bearer secret-token';
+
+      const createResponse = await request(app)
+        .post('/games')
+        .set('Authorization', token)
+        .send({ playerX: 'Alice', playerO: 'Bob' })
+        .expect(201);
+
+      const gameId = createResponse.body.id;
+
+      // Listen on random port
+      const server = app.listen(0);
+      const port = (server.address() as any).port;
+
+      const chunks: string[] = [];
+      let req: any;
+
+      const p = new Promise<void>((resolve, reject) => {
+        req = http.get(
+          `http://localhost:${port}/games/${gameId}/events`,
+          {
+            headers: {
+              Authorization: token,
+            },
+          },
+          (res: any) => {
+            res.on('data', (chunk: any) => {
+              chunks.push(chunk.toString());
+              if (chunks.length >= 2) {
+                resolve();
+              }
+            });
+            res.on('error', reject);
+          },
+        );
+        req.on('error', reject);
+      });
+
+      setTimeout(async () => {
+        await request(app)
+          .post(`/games/${gameId}/moves`)
+          .set('Authorization', token)
+          .send({ playerSymbol: 'X', row: 1, col: 1 })
+          .expect(200);
+      }, 50);
+
+      await p;
+
+      req.destroy();
+      server.close();
+
+      expect(chunks.length).toBeGreaterThanOrEqual(2);
+      expect(chunks[0]).toContain('data:');
+      expect(chunks[0]).toContain('PLAYING');
+      expect(chunks[1]).toContain('data:');
+      expect(chunks[1]).toContain('"turn":"O"');
     });
   });
 });

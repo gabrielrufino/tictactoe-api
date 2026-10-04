@@ -7,6 +7,7 @@ describe('gameController', () => {
   let makeMoveUseCaseMock: any;
   let getGameUseCaseMock: any;
   let listGamesUseCaseMock: any;
+  let gameEventPublisherMock: any;
   let controller: GameController;
 
   let req: Partial<Request>;
@@ -20,12 +21,14 @@ describe('gameController', () => {
     makeMoveUseCaseMock = { execute: vi.fn() };
     getGameUseCaseMock = { execute: vi.fn() };
     listGamesUseCaseMock = { execute: vi.fn() };
+    gameEventPublisherMock = { subscribe: vi.fn() };
 
     controller = new GameController(
       createGameUseCaseMock,
       makeMoveUseCaseMock,
       getGameUseCaseMock,
       listGamesUseCaseMock,
+      gameEventPublisherMock,
     );
 
     jsonMock = vi.fn();
@@ -34,10 +37,14 @@ describe('gameController', () => {
       body: {},
       params: {},
       query: {},
+      on: vi.fn(),
     };
     res = {
       status: statusMock,
       json: jsonMock,
+      setHeader: vi.fn(),
+      flushHeaders: vi.fn(),
+      write: vi.fn(),
     };
     next = vi.fn();
   });
@@ -165,6 +172,51 @@ describe('gameController', () => {
       await controller.listGames(req as Request, res as Response, next);
 
       expect(next).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('getEvents', () => {
+    it('should set headers, send initial state, subscribe, and unsubscribe on close', async () => {
+      req.params = { id: 'game-123' };
+      const expectedGame = { id: 'game-123', turn: 'X' };
+      getGameUseCaseMock.execute.mockResolvedValue(expectedGame);
+
+      const mockUnsubscribe = vi.fn();
+      gameEventPublisherMock.subscribe.mockReturnValue(mockUnsubscribe);
+
+      await controller.getEvents(req as Request, res as Response, next);
+
+      expect(getGameUseCaseMock.execute).toHaveBeenCalledWith({ gameId: 'game-123' });
+
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
+      expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache');
+      expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive');
+      expect(res.flushHeaders).toHaveBeenCalled();
+
+      expect(res.write).toHaveBeenCalledWith(`data: ${JSON.stringify(expectedGame)}\n\n`);
+
+      expect(gameEventPublisherMock.subscribe).toHaveBeenCalledWith('game-123', expect.any(Function));
+
+      const listenerCallback = gameEventPublisherMock.subscribe.mock.calls[0][1];
+      const updatedGame = { id: 'game-123', turn: 'O' };
+      listenerCallback(updatedGame);
+      expect(res.write).toHaveBeenCalledWith(`data: ${JSON.stringify(updatedGame)}\n\n`);
+
+      expect(req.on).toHaveBeenCalledWith('close', expect.any(Function));
+      const closeCallback = (req.on as any).mock.calls.find((call: any) => call[0] === 'close')[1];
+      closeCallback();
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('should call next with error if getGameUseCase throws', async () => {
+      req.params = { id: 'game-123' };
+      const error = new Error('Game not found');
+      getGameUseCaseMock.execute.mockRejectedValue(error);
+
+      await controller.getEvents(req as Request, res as Response, next);
+
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.setHeader).not.toHaveBeenCalled();
     });
   });
 });

@@ -10,6 +10,7 @@ import {
   listGamesSchema,
   makeMoveSchema,
 } from './adapters/controllers/game.validator.js';
+import { InMemoryGameEventPublisher } from './adapters/events/in-memory-game-event-publisher.adapter.js';
 import { MongoIdGenerator } from './adapters/id/mongo-id-generator.adapter.js';
 import { MongoGameRepository } from './adapters/repositories/mongo-game.repository.js';
 import { connectToDatabase } from './infrastructure/database/mongodb.js';
@@ -46,11 +47,12 @@ export async function createServer(): Promise<Express> {
 
   const gameRepository = new MongoGameRepository(collection);
   const idGenerator = new MongoIdGenerator();
+  const gameEventPublisher = new InMemoryGameEventPublisher();
 
   // Setup Use Cases
   const createGameUseCase = new CreateGameUseCase(gameRepository, idGenerator);
   const getGameUseCase = new GetGameUseCase(gameRepository);
-  const makeMoveUseCase = new MakeMoveUseCase(gameRepository);
+  const makeMoveUseCase = new MakeMoveUseCase(gameRepository, gameEventPublisher);
   const listGamesUseCase = new ListGamesUseCase(gameRepository);
 
   // Setup Controller
@@ -59,6 +61,7 @@ export async function createServer(): Promise<Express> {
     makeMoveUseCase,
     getGameUseCase,
     listGamesUseCase,
+    gameEventPublisher,
   );
 
   // Routes
@@ -91,6 +94,7 @@ export async function createServer(): Promise<Express> {
   app.post('/games', validate(createGameSchema), gameController.create);
   app.get('/games', validate(listGamesSchema), gameController.listGames);
   app.get('/games/:id', validate(getGameSchema), gameController.getGame);
+  app.get('/games/:id/events', validate(getGameSchema), gameController.getEvents);
   app.post('/games/:id/moves', validate(makeMoveSchema), gameController.makeMove);
 
   app.use(errorHandler);

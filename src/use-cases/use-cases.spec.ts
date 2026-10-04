@@ -70,7 +70,8 @@ describe('use Cases Integration', () => {
     idGenerator = new SimpleIdGenerator();
     createGame = new CreateGameUseCase(repository, idGenerator);
     getGame = new GetGameUseCase(repository);
-    makeMove = new MakeMoveUseCase(repository);
+    const mockPublisher = { publish: () => {} };
+    makeMove = new MakeMoveUseCase(repository, mockPublisher);
     listGames = new ListGamesUseCase(repository);
   });
 
