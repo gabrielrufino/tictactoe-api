@@ -10,7 +10,7 @@
 ## Architecture
 - Strictly adheres to **Clean Architecture**:
   - **Entities** (`src/domain/entities/`): Pure business logic.
-  - **Use Cases** (`src/usecases/`): Orchestration & application business rules.
+  - **Use Cases** (`src/use-cases/`): Orchestration & application business rules.
   - **Adapters** (`src/adapters/`): Converts database models (`MongoGameRepository`) and handles requests (`GameController`).
   - **Infrastructure** (`src/infrastructure/`): Express, MongoDB connection setup, middleware, and logging.
 

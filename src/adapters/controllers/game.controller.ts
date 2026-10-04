@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { CreateGameUseCase } from '../../usecases/create-game.use-case.js';
-import type { GetGameUseCase } from '../../usecases/get-game.use-case.js';
-import type { ListGamesUseCase } from '../../usecases/list-games.use-case.js';
-import type { MakeMoveUseCase } from '../../usecases/make-move.use-case.js';
+import type { CreateGameUseCase } from '../../use-cases/create-game.use-case.js';
+import type { GetGameUseCase } from '../../use-cases/get-game.use-case.js';
+import type { ListGamesUseCase } from '../../use-cases/list-games.use-case.js';
+import type { MakeMoveUseCase } from '../../use-cases/make-move.use-case.js';
 
 export class GameController {
   constructor(

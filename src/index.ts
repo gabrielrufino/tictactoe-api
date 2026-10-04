@@ -18,10 +18,10 @@ import { logger } from './infrastructure/logger.js';
 import { authenticate } from './infrastructure/middleware/auth.middleware.js';
 import { errorHandler } from './infrastructure/middleware/error.middleware.js';
 import { validate } from './infrastructure/middleware/validation.middleware.js';
-import { CreateGameUseCase } from './usecases/create-game.use-case.js';
-import { GetGameUseCase } from './usecases/get-game.use-case.js';
-import { ListGamesUseCase } from './usecases/list-games.use-case.js';
-import { MakeMoveUseCase } from './usecases/make-move.use-case.js';
+import { CreateGameUseCase } from './use-cases/create-game.use-case.js';
+import { GetGameUseCase } from './use-cases/get-game.use-case.js';
+import { ListGamesUseCase } from './use-cases/list-games.use-case.js';
+import { MakeMoveUseCase } from './use-cases/make-move.use-case.js';
 
 export async function createServer(): Promise<Express> {
   const app = express();

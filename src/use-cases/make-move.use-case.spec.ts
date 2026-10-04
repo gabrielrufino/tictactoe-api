@@ -46,4 +46,47 @@ describe('makeMoveUseCase', () => {
       }),
     ).rejects.toThrow('Game not found');
   });
+
+  it('should successfully make a move if authenticatedPlayer matches the expected player for the symbol', async () => {
+    const game = Game.create('game-123', 'Alice', 'Bob');
+    const mockFindById = vi.fn().mockResolvedValue(game);
+    const mockSave = vi.fn();
+    const repository: GameRepository = {
+      save: mockSave,
+      findById: mockFindById,
+      findAll: vi.fn(),
+    };
+
+    const useCase = new MakeMoveUseCase(repository);
+    const result = await useCase.execute({
+      gameId: 'game-123',
+      playerSymbol: 'X',
+      row: 0,
+      col: 0,
+      authenticatedPlayer: 'Alice',
+    });
+
+    expect(result.board[0][0]).toBe('X');
+  });
+
+  it('should throw ValidationError if authenticatedPlayer does not match the expected player for the symbol', async () => {
+    const game = Game.create('game-123', 'Alice', 'Bob');
+    const mockFindById = vi.fn().mockResolvedValue(game);
+    const repository: GameRepository = {
+      save: vi.fn(),
+      findById: mockFindById,
+      findAll: vi.fn(),
+    };
+
+    const useCase = new MakeMoveUseCase(repository);
+    await expect(
+      useCase.execute({
+        gameId: 'game-123',
+        playerSymbol: 'X',
+        row: 0,
+        col: 0,
+        authenticatedPlayer: 'Bob',
+      }),
+    ).rejects.toThrow('Unauthorized: Authenticated player is Bob, but symbol X belongs to Alice');
+  });
 });
