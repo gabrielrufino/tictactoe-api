@@ -47,7 +47,10 @@ export class GameController {
   public getGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const game = await this.getGameUseCase.execute({ gameId: String(id) });
+      const game = await this.getGameUseCase.execute({
+        gameId: String(id),
+        authenticatedPlayer: (req as any).player,
+      });
       res.status(200).json(GameMapper.toDTO(game));
     }
     catch (error) {
@@ -89,7 +92,10 @@ export class GameController {
         }
       });
 
-      const game = await this.getGameUseCase.execute({ gameId });
+      const game = await this.getGameUseCase.execute({
+        gameId,
+        authenticatedPlayer: (req as any).player,
+      });
 
       if (isClosed) {
         return;

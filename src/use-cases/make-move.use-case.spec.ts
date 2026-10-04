@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Game } from '../domain/entities/game.entity.js';
 import { MakeMoveUseCase } from './make-move.use-case.js';
 
-describe('makeMoveUseCase', () => {
+describe(MakeMoveUseCase.name, () => {
   it('should successfully make a move and save the game', async () => {
     const game = Game.create('game-123', 'Alice', 'Bob');
     const mockFindById = vi.fn().mockResolvedValue(game);

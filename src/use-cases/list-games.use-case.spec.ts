@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Game } from '../domain/entities/game.entity.js';
 import { ListGamesUseCase } from './list-games.use-case.js';
 
-describe('listGamesUseCase', () => {
+describe(ListGamesUseCase.name, () => {
   it('should list games with default page and limit', async () => {
     const game1 = Game.create('game-1', 'Alice', 'Bob');
     const game2 = Game.create('game-2', 'Charlie', 'David');

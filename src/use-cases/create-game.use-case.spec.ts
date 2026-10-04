@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Game } from '../domain/entities/game.entity.js';
 import { CreateGameUseCase } from './create-game.use-case.js';
 
-describe('createGameUseCase', () => {
+describe(CreateGameUseCase.name, () => {
   it('should create a game and save it in repository', async () => {
     const mockSave = vi.fn();
     const repository: GameRepository = {

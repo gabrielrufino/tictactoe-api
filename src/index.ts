@@ -31,7 +31,13 @@ export async function createServer(): Promise<Express> {
 
   const app = express();
   app.use(express.json());
-  app.use(pinoHttp({ logger }));
+  app.use(pinoHttp({
+    logger,
+    redact: {
+      paths: ['req.headers.authorization', 'req.headers.cookie'],
+      remove: true,
+    },
+  }));
 
   // Setup Database
   const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
@@ -80,10 +86,10 @@ export async function createServer(): Promise<Express> {
       });
     }
     catch (error: any) {
+      logger.error({ error }, 'Database health check failed');
       res.status(503).json({
         status: 'DOWN',
         database: 'disconnected',
-        error: error.message || 'Unknown error',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
       });
