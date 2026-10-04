@@ -2,6 +2,7 @@ import type { Collection } from 'mongodb';
 import type { Board, GameStatus, PlayerSymbol } from '../../domain/entities/game.entity.js';
 import type { GameRepository } from '../../domain/repositories/game.repository.js';
 import { Game } from '../../domain/entities/game.entity.js';
+import { ConflictError, GameNotFoundError } from '../../domain/errors/game.error.js';
 
 export interface GameDocument {
   _id: string
@@ -13,6 +14,7 @@ export interface GameDocument {
   turn: PlayerSymbol
   status: GameStatus
   winner: PlayerSymbol | null
+  version?: number
   updatedAt?: Date
 }
 
@@ -20,20 +22,52 @@ export class MongoGameRepository implements GameRepository {
   constructor(private readonly collection: Collection<GameDocument>) {}
 
   public async save(game: Game): Promise<void> {
-    await this.collection.updateOne(
-      { _id: game.id },
-      {
-        $set: {
+    const isNew = game.version === 0;
+
+    if (isNew) {
+      try {
+        await this.collection.insertOne({
+          _id: game.id,
           board: game.board,
           players: game.players,
           turn: game.turn,
           status: game.status,
           winner: game.winner,
+          version: 1,
           updatedAt: new Date(),
+        });
+      }
+      catch (error: any) {
+        if (error.code === 11000) {
+          throw new ConflictError('Game already exists');
+        }
+        throw error;
+      }
+    }
+    else {
+      const result = await this.collection.updateOne(
+        { _id: game.id, version: game.version },
+        {
+          $set: {
+            board: game.board,
+            players: game.players,
+            turn: game.turn,
+            status: game.status,
+            winner: game.winner,
+            updatedAt: new Date(),
+          },
+          $inc: { version: 1 },
         },
-      },
-      { upsert: true },
-    );
+      );
+
+      if (result.matchedCount === 0) {
+        const exists = await this.collection.findOne({ _id: game.id });
+        if (!exists) {
+          throw new GameNotFoundError();
+        }
+        throw new ConflictError();
+      }
+    }
   }
 
   public async findById(id: string): Promise<Game | null> {
@@ -49,6 +83,7 @@ export class MongoGameRepository implements GameRepository {
       turn: doc.turn,
       status: doc.status,
       winner: doc.winner,
+      version: doc.version,
     });
   }
 
@@ -79,6 +114,7 @@ export class MongoGameRepository implements GameRepository {
           turn: doc.turn,
           status: doc.status,
           winner: doc.winner,
+          version: doc.version,
         }),
     );
   }

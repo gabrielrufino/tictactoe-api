@@ -25,7 +25,7 @@ import { ListGamesUseCase } from './use-cases/list-games.use-case.js';
 import { MakeMoveUseCase } from './use-cases/make-move.use-case.js';
 
 export async function createServer(): Promise<Express> {
-  if (!process.env.API_TOKEN && process.env.NODE_ENV !== 'test') {
+  if (!process.env.API_TOKEN) {
     throw new Error('API_TOKEN environment variable is required');
   }
 
@@ -106,14 +106,16 @@ export async function createServer(): Promise<Express> {
   return app;
 }
 
-const port = process.env.PORT || 3000;
-createServer()
-  .then((app) => {
-    app.listen(port, () => {
-      logger.info(`Server running on port ${port}`);
+if (process.env.NODE_ENV !== 'test') {
+  const port = process.env.PORT || 3000;
+  createServer()
+    .then((app) => {
+      app.listen(port, () => {
+        logger.info(`Server running on port ${port}`);
+      });
+    })
+    .catch((error) => {
+      logger.error({ error }, 'Failed to start server');
+      process.exit(1);
     });
-  })
-  .catch((error) => {
-    logger.error({ error }, 'Failed to start server');
-    process.exit(1);
-  });
+}

@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authenticate } from './auth.middleware.js';
 
+process.env.API_TOKEN = 'secret-token';
+
 describe('authMiddleware', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;

@@ -11,10 +11,10 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   }
 
   const token = authHeader.split(' ')[1];
-  const expectedToken = process.env.API_TOKEN || 'secret-token';
+  const expectedToken = process.env.API_TOKEN;
 
-  if (token !== expectedToken && !token.startsWith('player:')) {
-    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  if (!expectedToken) {
+    res.status(500).json({ error: 'Internal Server Error: API_TOKEN is not configured' });
     return;
   }
 
@@ -39,6 +39,10 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     }
 
     (req as any).player = playerName;
+  }
+  else if (token !== expectedToken) {
+    res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return;
   }
 
   next();

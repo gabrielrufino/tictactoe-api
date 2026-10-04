@@ -20,6 +20,7 @@ export interface GameProps {
   turn: PlayerSymbol
   status: GameStatus
   winner: PlayerSymbol | null
+  version?: number
 }
 
 export class Game {
@@ -29,6 +30,7 @@ export class Game {
   private _turn: PlayerSymbol;
   private _status: GameStatus;
   private _winner: PlayerSymbol | null;
+  private _version: number;
 
   constructor(props: GameProps) {
     this._id = props.id;
@@ -37,6 +39,7 @@ export class Game {
     this._turn = props.turn;
     this._status = props.status;
     this._winner = props.winner;
+    this._version = props.version || 0;
   }
 
   get id(): string { return this._id; }
@@ -45,6 +48,7 @@ export class Game {
   get turn(): PlayerSymbol { return this._turn; }
   get status(): GameStatus { return this._status; }
   get winner(): PlayerSymbol | null { return this._winner; }
+  get version(): number { return this._version; }
 
   public static create(id: string, playerX: string, playerO: string): Game {
     return new Game({

@@ -25,3 +25,10 @@ export class ValidationError extends DomainError {
     this.name = 'ValidationError';
   }
 }
+
+export class ConflictError extends DomainError {
+  constructor(message = 'Conflict: Stale game revision') {
+    super(message);
+    this.name = 'ConflictError';
+  }
+}

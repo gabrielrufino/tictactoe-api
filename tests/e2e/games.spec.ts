@@ -4,21 +4,45 @@ import { afterAll, describe, expect, it, vi } from 'vitest';
 import { createServer } from '../../src/index.js';
 import { disconnectFromDatabase } from '../../src/infrastructure/database/mongodb.js';
 
+process.env.API_TOKEN = 'secret-token';
+
 // Mock DB connection and collection at the top-level
 vi.mock('../../src/infrastructure/database/mongodb.js', () => {
   const mockGames: any[] = [];
   const mockCollection = {
+    insertOne: vi.fn().mockImplementation(async (doc) => {
+      const existing = mockGames.find(g => g._id === doc._id);
+      if (existing) {
+        const err = new Error('Duplicate key error');
+        (err as any).code = 11000;
+        throw err;
+      }
+      mockGames.push({ ...doc });
+      return { insertedId: doc._id };
+    }),
     updateOne: vi.fn().mockImplementation(async (query, update, _options) => {
       const id = query._id;
+      const expectedVersion = query.version;
       const existingIndex = mockGames.findIndex(g => g._id === id);
-      const setObj = update.$set;
-      if (existingIndex !== -1) {
-        mockGames[existingIndex] = { ...mockGames[existingIndex], ...setObj };
+
+      if (existingIndex === -1) {
+        return { matchedCount: 0, modifiedCount: 0 };
       }
-      else {
-        mockGames.push({ _id: id, ...setObj });
+
+      if (expectedVersion !== undefined && mockGames[existingIndex].version !== expectedVersion) {
+        return { matchedCount: 0, modifiedCount: 0 };
       }
-      return { upsertedId: id };
+
+      const setObj = update.$set || {};
+      const incObj = update.$inc || {};
+
+      mockGames[existingIndex] = { ...mockGames[existingIndex], ...setObj };
+
+      if (incObj.version) {
+        mockGames[existingIndex].version = (mockGames[existingIndex].version || 0) + incObj.version;
+      }
+
+      return { matchedCount: 1, modifiedCount: 1 };
     }),
     findOne: vi.fn().mockImplementation(async (query) => {
       const id = query._id;
@@ -304,8 +328,9 @@ describe('e2E: Games API', () => {
       const server = app.listen(0);
       const port = (server.address() as any).port;
 
-      const chunks: string[] = [];
+      const frames: string[] = [];
       let req: any;
+      let buffer = '';
 
       const p = new Promise<void>((resolve, reject) => {
         req = http.get(
@@ -317,9 +342,22 @@ describe('e2E: Games API', () => {
           },
           (res: any) => {
             res.on('data', (chunk: any) => {
-              chunks.push(chunk.toString());
-              if (chunks.length >= 2) {
-                resolve();
+              buffer += chunk.toString();
+              const parts = buffer.split('\n\n');
+              buffer = parts.pop() || '';
+
+              for (const part of parts) {
+                const trimmed = part.trim();
+                if (!trimmed || trimmed.startsWith(':')) {
+                  continue;
+                }
+                if (trimmed.startsWith('data:')) {
+                  frames.push(trimmed);
+                  if (frames.length >= 2) {
+                    resolve();
+                    return;
+                  }
+                }
               }
             });
             res.on('error', reject);
@@ -341,11 +379,11 @@ describe('e2E: Games API', () => {
       req.destroy();
       server.close();
 
-      expect(chunks.length).toBeGreaterThanOrEqual(2);
-      expect(chunks[0]).toContain('data:');
-      expect(chunks[0]).toContain('PLAYING');
-      expect(chunks[1]).toContain('data:');
-      expect(chunks[1]).toContain('"turn":"O"');
+      expect(frames.length).toBeGreaterThanOrEqual(2);
+      expect(frames[0]).toContain('data:');
+      expect(frames[0]).toContain('PLAYING');
+      expect(frames[1]).toContain('data:');
+      expect(frames[1]).toContain('"turn":"O"');
     });
   });
 });
