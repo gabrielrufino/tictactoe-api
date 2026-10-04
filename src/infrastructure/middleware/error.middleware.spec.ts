@@ -44,13 +44,13 @@ describe('errorMiddleware', () => {
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Some domain validation error' });
   });
 
-  it('should log the error and return 500 for a generic/unknown Error', () => {
+  it('should log the error and return 500 for a generic/unknown Error with a generic message', () => {
     const error = new Error('Database connection failed');
     errorHandler(error, req as Request, res as Response, next);
 
     expect(logger.error).toHaveBeenCalledWith(error, 'Unhandled application error: Database connection failed');
     expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({ error: 'Database connection failed' });
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'An unexpected error occurred' });
   });
 
   it('should return 500 with default message if error has no message', () => {

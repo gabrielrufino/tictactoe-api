@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -18,7 +18,7 @@ RUN npm run build
 
 
 # Stage 2: Create the minimal production image
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 
 # Use production environment
 ENV NODE_ENV=production

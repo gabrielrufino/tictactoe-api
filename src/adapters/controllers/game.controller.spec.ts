@@ -1,27 +1,35 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { Mock, Mocked } from 'vitest';
+import type { CreateGameUseCase } from '../../use-cases/create-game.use-case.js';
+import type { GetGameUseCase } from '../../use-cases/get-game.use-case.js';
+import type { ListGamesUseCase } from '../../use-cases/list-games.use-case.js';
+import type { MakeMoveUseCase } from '../../use-cases/make-move.use-case.js';
+import type { GameEventSubscriber } from '../../use-cases/ports/game-event-publisher.port.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Game } from '../../domain/entities/game.entity.js';
+import { GameMapper } from './dto/game.mapper.js';
 import { GameController } from './game.controller.js';
 
-describe('gameController', () => {
-  let createGameUseCaseMock: any;
-  let makeMoveUseCaseMock: any;
-  let getGameUseCaseMock: any;
-  let listGamesUseCaseMock: any;
-  let gameEventPublisherMock: any;
+describe(GameController.name, () => {
+  let createGameUseCaseMock: Mocked<CreateGameUseCase>;
+  let makeMoveUseCaseMock: Mocked<MakeMoveUseCase>;
+  let getGameUseCaseMock: Mocked<GetGameUseCase>;
+  let listGamesUseCaseMock: Mocked<ListGamesUseCase>;
+  let gameEventPublisherMock: Mocked<GameEventSubscriber>;
   let controller: GameController;
 
-  let req: Partial<Request>;
+  let req: Partial<Request> & { player?: string };
   let res: Partial<Response>;
   let next: NextFunction;
-  let jsonMock: any;
-  let statusMock: any;
+  let jsonMock: Mock;
+  let statusMock: Mock;
 
   beforeEach(() => {
-    createGameUseCaseMock = { execute: vi.fn() };
-    makeMoveUseCaseMock = { execute: vi.fn() };
-    getGameUseCaseMock = { execute: vi.fn() };
-    listGamesUseCaseMock = { execute: vi.fn() };
-    gameEventPublisherMock = { subscribe: vi.fn() };
+    createGameUseCaseMock = { execute: vi.fn() } as unknown as Mocked<CreateGameUseCase>;
+    makeMoveUseCaseMock = { execute: vi.fn() } as unknown as Mocked<MakeMoveUseCase>;
+    getGameUseCaseMock = { execute: vi.fn() } as unknown as Mocked<GetGameUseCase>;
+    listGamesUseCaseMock = { execute: vi.fn() } as unknown as Mocked<ListGamesUseCase>;
+    gameEventPublisherMock = { subscribe: vi.fn() } as unknown as Mocked<GameEventSubscriber>;
 
     controller = new GameController(
       createGameUseCaseMock,
@@ -52,14 +60,14 @@ describe('gameController', () => {
   describe('create', () => {
     it('should create a game and return 201', async () => {
       req.body = { playerX: 'Alice', playerO: 'Bob' };
-      const expectedGame = { id: 'game-123', players: { X: 'Alice', O: 'Bob' } };
-      createGameUseCaseMock.execute.mockResolvedValue(expectedGame);
+      const game = Game.create('game-123', 'Alice', 'Bob');
+      createGameUseCaseMock.execute.mockResolvedValue(game);
 
       await controller.create(req as Request, res as Response, next);
 
       expect(createGameUseCaseMock.execute).toHaveBeenCalledWith({ playerX: 'Alice', playerO: 'Bob' });
       expect(statusMock).toHaveBeenCalledWith(201);
-      expect(jsonMock).toHaveBeenCalledWith(expectedGame);
+      expect(jsonMock).toHaveBeenCalledWith(GameMapper.toDTO(game));
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -78,9 +86,10 @@ describe('gameController', () => {
     it('should make a move and return 200', async () => {
       req.params = { id: 'game-123' };
       req.body = { playerSymbol: 'X', row: 1, col: 2 };
-      (req as any).player = 'Alice';
-      const expectedGame = { id: 'game-123', turn: 'O' };
-      makeMoveUseCaseMock.execute.mockResolvedValue(expectedGame);
+      req.player = 'Alice';
+      const game = Game.create('game-123', 'Alice', 'Bob');
+      game.makeMove('X', 1, 2);
+      makeMoveUseCaseMock.execute.mockResolvedValue(game);
 
       await controller.makeMove(req as Request, res as Response, next);
 
@@ -92,7 +101,7 @@ describe('gameController', () => {
         authenticatedPlayer: 'Alice',
       });
       expect(statusMock).toHaveBeenCalledWith(200);
-      expect(jsonMock).toHaveBeenCalledWith(expectedGame);
+      expect(jsonMock).toHaveBeenCalledWith(GameMapper.toDTO(game));
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -111,14 +120,14 @@ describe('gameController', () => {
   describe('getGame', () => {
     it('should return 200 with the game', async () => {
       req.params = { id: 'game-123' };
-      const expectedGame = { id: 'game-123' };
-      getGameUseCaseMock.execute.mockResolvedValue(expectedGame);
+      const game = Game.create('game-123', 'Alice', 'Bob');
+      getGameUseCaseMock.execute.mockResolvedValue(game);
 
       await controller.getGame(req as Request, res as Response, next);
 
       expect(getGameUseCaseMock.execute).toHaveBeenCalledWith({ gameId: 'game-123' });
       expect(statusMock).toHaveBeenCalledWith(200);
-      expect(jsonMock).toHaveBeenCalledWith(expectedGame);
+      expect(jsonMock).toHaveBeenCalledWith(GameMapper.toDTO(game));
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -136,7 +145,8 @@ describe('gameController', () => {
   describe('listGames', () => {
     it('should return 200 with the games list', async () => {
       req.query = { player: 'Alice', page: '1', limit: '10' };
-      const expectedGames = [{ id: 'game-123' }];
+      const game = Game.create('game-123', 'Alice', 'Bob');
+      const expectedGames = [game];
       listGamesUseCaseMock.execute.mockResolvedValue(expectedGames);
 
       await controller.listGames(req as Request, res as Response, next);
@@ -147,7 +157,7 @@ describe('gameController', () => {
         limit: 10,
       });
       expect(statusMock).toHaveBeenCalledWith(200);
-      expect(jsonMock).toHaveBeenCalledWith(expectedGames);
+      expect(jsonMock).toHaveBeenCalledWith(expectedGames.map(GameMapper.toDTO));
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -178,8 +188,8 @@ describe('gameController', () => {
   describe('getEvents', () => {
     it('should set headers, send initial state, subscribe, and unsubscribe on close', async () => {
       req.params = { id: 'game-123' };
-      const expectedGame = { id: 'game-123', turn: 'X' };
-      getGameUseCaseMock.execute.mockResolvedValue(expectedGame);
+      const game = Game.create('game-123', 'Alice', 'Bob');
+      getGameUseCaseMock.execute.mockResolvedValue(game);
 
       const mockUnsubscribe = vi.fn();
       gameEventPublisherMock.subscribe.mockReturnValue(mockUnsubscribe);
@@ -193,18 +203,21 @@ describe('gameController', () => {
       expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive');
       expect(res.flushHeaders).toHaveBeenCalled();
 
-      expect(res.write).toHaveBeenCalledWith(`data: ${JSON.stringify(expectedGame)}\n\n`);
+      expect(res.write).toHaveBeenCalledWith(`data: ${JSON.stringify(GameMapper.toDTO(game))}\n\n`);
 
       expect(gameEventPublisherMock.subscribe).toHaveBeenCalledWith('game-123', expect.any(Function));
 
       const listenerCallback = gameEventPublisherMock.subscribe.mock.calls[0][1];
-      const updatedGame = { id: 'game-123', turn: 'O' };
+      const updatedGame = Game.create('game-123', 'Alice', 'Bob');
+      updatedGame.makeMove('X', 0, 0);
       listenerCallback(updatedGame);
-      expect(res.write).toHaveBeenCalledWith(`data: ${JSON.stringify(updatedGame)}\n\n`);
+      expect(res.write).toHaveBeenCalledWith(`data: ${JSON.stringify(GameMapper.toDTO(updatedGame))}\n\n`);
 
       expect(req.on).toHaveBeenCalledWith('close', expect.any(Function));
-      const closeCallback = (req.on as any).mock.calls.find((call: any) => call[0] === 'close')[1];
-      closeCallback();
+      const closeCallback = (req.on as Mock).mock.calls.find(call => call[0] === 'close')?.[1];
+      if (closeCallback) {
+        closeCallback();
+      }
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 

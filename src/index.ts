@@ -25,6 +25,10 @@ import { ListGamesUseCase } from './use-cases/list-games.use-case.js';
 import { MakeMoveUseCase } from './use-cases/make-move.use-case.js';
 
 export async function createServer(): Promise<Express> {
+  if (!process.env.API_TOKEN && process.env.NODE_ENV !== 'test') {
+    throw new Error('API_TOKEN environment variable is required');
+  }
+
   const app = express();
   app.use(express.json());
   app.use(pinoHttp({ logger }));

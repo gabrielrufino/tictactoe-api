@@ -1,9 +1,7 @@
-import type { PlayerSymbol } from '../domain/entities/game.entity.js';
+import type { Game, PlayerSymbol } from '../domain/entities/game.entity.js';
 import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { GameResponseDTO } from './dto/game-response.dto.js';
 import type { GameEventPublisher } from './ports/game-event-publisher.port.js';
 import { GameNotFoundError, ValidationError } from '../domain/errors/game.error.js';
-import { GameMapper } from './dto/game.mapper.js';
 
 export interface MakeMoveInput {
   readonly gameId: string
@@ -19,7 +17,7 @@ export class MakeMoveUseCase {
     private readonly gameEventPublisher: GameEventPublisher,
   ) {}
 
-  public async execute(input: MakeMoveInput): Promise<GameResponseDTO> {
+  public async execute(input: MakeMoveInput): Promise<Game> {
     const game = await this.gameRepository.findById(input.gameId);
     if (!game) {
       throw new GameNotFoundError();
@@ -37,9 +35,8 @@ export class MakeMoveUseCase {
     game.makeMove(input.playerSymbol, input.row, input.col);
     await this.gameRepository.save(game);
 
-    const gameDto = GameMapper.toDTO(game);
-    this.gameEventPublisher.publish(input.gameId, gameDto);
+    this.gameEventPublisher.publish(input.gameId, game);
 
-    return gameDto;
+    return game;
   }
 }

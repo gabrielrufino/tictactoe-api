@@ -1,4 +1,4 @@
-import type { Game } from '../../domain/entities/game.entity.js';
+import type { Game } from '../../../domain/entities/game.entity.js';
 import type { GameResponseDTO } from './game-response.dto.js';
 
 export class GameMapper {

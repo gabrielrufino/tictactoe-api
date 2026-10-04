@@ -17,18 +17,17 @@ describe('getGameUseCase', () => {
     const result = await useCase.execute({ gameId: 'game-123' });
 
     expect(mockFindById).toHaveBeenCalledWith('game-123');
-    expect(result).toEqual({
-      id: 'game-123',
-      board: [
-        [null, null, null],
-        [null, null, null],
-        [null, null, null],
-      ],
-      players: { X: 'Alice', O: 'Bob' },
-      turn: 'X',
-      status: 'PLAYING',
-      winner: null,
-    });
+    expect(result).toBeInstanceOf(Game);
+    expect(result.id).toBe('game-123');
+    expect(result.players).toEqual({ X: 'Alice', O: 'Bob' });
+    expect(result.board).toEqual([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
+    expect(result.turn).toBe('X');
+    expect(result.status).toBe('PLAYING');
+    expect(result.winner).toBeNull();
   });
 
   it('should throw an error if the game is not found', async () => {

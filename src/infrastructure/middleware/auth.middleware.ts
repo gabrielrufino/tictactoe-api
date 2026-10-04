@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import crypto from 'node:crypto';
 import process from 'node:process';
 
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
@@ -18,11 +19,25 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   }
 
   if (token.startsWith('player:')) {
-    const playerName = token.split(':')[1];
-    if (!playerName) {
+    const parts = token.split(':');
+    const playerName = parts[1];
+    const signature = parts[2];
+
+    if (!playerName || !signature) {
       res.status(401).json({ error: 'Unauthorized: Invalid player token format' });
       return;
     }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', expectedToken)
+      .update(playerName)
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      res.status(401).json({ error: 'Unauthorized: Invalid player signature' });
+      return;
+    }
+
     (req as any).player = playerName;
   }
 

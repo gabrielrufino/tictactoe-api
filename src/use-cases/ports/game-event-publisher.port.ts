@@ -1,9 +1,9 @@
-import type { GameResponseDTO } from '../dto/game-response.dto.js';
+import type { Game } from '../../domain/entities/game.entity.js';
 
 export interface GameEventPublisher {
-  publish: (gameId: string, game: GameResponseDTO) => void
+  publish: (gameId: string, game: Game) => void
 }
 
 export interface GameEventSubscriber {
-  subscribe: (gameId: string, listener: (game: GameResponseDTO) => void) => () => void
+  subscribe: (gameId: string, listener: (game: Game) => void) => () => void
 }

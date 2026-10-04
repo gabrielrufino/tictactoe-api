@@ -4,6 +4,7 @@ import type { GetGameUseCase } from '../../use-cases/get-game.use-case.js';
 import type { ListGamesUseCase } from '../../use-cases/list-games.use-case.js';
 import type { MakeMoveUseCase } from '../../use-cases/make-move.use-case.js';
 import type { GameEventSubscriber } from '../../use-cases/ports/game-event-publisher.port.js';
+import { GameMapper } from './dto/game.mapper.js';
 
 export class GameController {
   constructor(
@@ -18,7 +19,7 @@ export class GameController {
     try {
       const { playerX, playerO } = req.body;
       const game = await this.createGameUseCase.execute({ playerX, playerO });
-      res.status(201).json(game);
+      res.status(201).json(GameMapper.toDTO(game));
     }
     catch (error) {
       next(error);
@@ -36,7 +37,7 @@ export class GameController {
         col: Number(col),
         authenticatedPlayer: (req as any).player,
       });
-      res.status(200).json(game);
+      res.status(200).json(GameMapper.toDTO(game));
     }
     catch (error) {
       next(error);
@@ -47,7 +48,7 @@ export class GameController {
     try {
       const { id } = req.params;
       const game = await this.getGameUseCase.execute({ gameId: String(id) });
-      res.status(200).json(game);
+      res.status(200).json(GameMapper.toDTO(game));
     }
     catch (error) {
       next(error);
@@ -62,7 +63,7 @@ export class GameController {
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
       });
-      res.status(200).json(games);
+      res.status(200).json(games.map(GameMapper.toDTO));
     }
     catch (error) {
       next(error);
@@ -99,12 +100,12 @@ export class GameController {
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      res.write(`data: ${JSON.stringify(game)}\n\n`);
+      res.write(`data: ${JSON.stringify(GameMapper.toDTO(game))}\n\n`);
 
       unsubscribe = this.gameEventPublisher.subscribe(gameId, (updatedGame) => {
         try {
           if (!res.destroyed) {
-            res.write(`data: ${JSON.stringify(updatedGame)}\n\n`);
+            res.write(`data: ${JSON.stringify(GameMapper.toDTO(updatedGame))}\n\n`);
           }
         }
         catch {

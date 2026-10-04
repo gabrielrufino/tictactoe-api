@@ -21,5 +21,5 @@ export function errorHandler(
   // Log unknown/system errors
   logger.error(error, `Unhandled application error: ${error.message}`);
 
-  res.status(500).json({ error: error.message || 'An unexpected error occurred' });
+  res.status(500).json({ error: 'An unexpected error occurred' });
 }
