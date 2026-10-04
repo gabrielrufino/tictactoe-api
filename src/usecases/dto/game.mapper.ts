@@ -1,5 +1,5 @@
-import type { Game } from '../../domain/entities/game.js';
-import type { GameResponseDTO } from './game-response-dto.js';
+import type { Game } from '../../domain/entities/game.entity.js';
+import type { GameResponseDTO } from './game-response.dto.js';
 
 export class GameMapper {
   public static toDTO(game: Game): GameResponseDTO {

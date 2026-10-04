@@ -1,3 +1,5 @@
+import { InvalidMoveError } from '../errors/game.error.js';
+
 export type PlayerSymbol = 'X' | 'O';
 export type BoardCell = PlayerSymbol | null;
 export type Board = [
@@ -64,19 +66,19 @@ export class Game {
 
   public makeMove(playerSymbol: PlayerSymbol, row: number, col: number): void {
     if (this._status !== 'PLAYING') {
-      throw new Error('Game is not active');
+      throw new InvalidMoveError('Game is not active');
     }
 
     if (this._turn !== playerSymbol) {
-      throw new Error(`It is not player ${playerSymbol}'s turn`);
+      throw new InvalidMoveError(`It is not player ${playerSymbol}'s turn`);
     }
 
     if (row < 0 || row > 2 || col < 0 || col > 2) {
-      throw new Error('Move out of bounds');
+      throw new InvalidMoveError('Move out of bounds');
     }
 
     if (this._board[row][col] !== null) {
-      throw new Error('Cell is already occupied');
+      throw new InvalidMoveError('Cell is already occupied');
     }
 
     this._board[row][col] = playerSymbol;

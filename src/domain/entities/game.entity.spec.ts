@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Game } from './game.js';
+import { Game } from './game.entity.js';
 
 describe('game Entity', () => {
   it('should create a game with initial playing state', () => {

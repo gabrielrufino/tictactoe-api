@@ -12,9 +12,18 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   const token = authHeader.split(' ')[1];
   const expectedToken = process.env.API_TOKEN || 'secret-token';
 
-  if (token !== expectedToken) {
+  if (token !== expectedToken && !token.startsWith('player:')) {
     res.status(401).json({ error: 'Unauthorized: Invalid token' });
     return;
+  }
+
+  if (token.startsWith('player:')) {
+    const playerName = token.split(':')[1];
+    if (!playerName) {
+      res.status(401).json({ error: 'Unauthorized: Invalid player token format' });
+      return;
+    }
+    (req as any).player = playerName;
   }
 
   next();

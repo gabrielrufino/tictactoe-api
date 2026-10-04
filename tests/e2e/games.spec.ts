@@ -173,7 +173,7 @@ describe('e2E: Games API', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    it('should return 400 Bad Request if making a move on a non-existent game', async () => {
+    it('should return 404 Not Found if making a move on a non-existent game', async () => {
       const app = await createServer();
       const token = 'Bearer secret-token';
 
@@ -181,7 +181,7 @@ describe('e2E: Games API', () => {
         .post('/games/non-existent-id/moves')
         .set('Authorization', token)
         .send({ playerSymbol: 'X', row: 0, col: 0 })
-        .expect(400);
+        .expect(404);
 
       expect(response.body).toHaveProperty('error');
     });

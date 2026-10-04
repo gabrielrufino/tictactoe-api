@@ -1,6 +1,6 @@
-import type { GameRepository } from '../domain/repositories/game-repository.js';
-import type { GameResponseDTO } from './dto/game-response-dto.js';
-import { GameMapper } from './dto/game-mapper.js';
+import type { GameRepository } from '../domain/repositories/game.repository.js';
+import type { GameResponseDTO } from './dto/game-response.dto.js';
+import { GameMapper } from './dto/game.mapper.js';
 
 export interface ListGamesRequestDTO {
   player?: string

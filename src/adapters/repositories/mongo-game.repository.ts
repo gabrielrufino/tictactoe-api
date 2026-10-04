@@ -1,7 +1,7 @@
 import type { Collection } from 'mongodb';
-import type { Board, GameStatus, PlayerSymbol } from '../../domain/entities/game.js';
-import type { GameRepository } from '../../domain/repositories/game-repository.js';
-import { Game } from '../../domain/entities/game.js';
+import type { Board, GameStatus, PlayerSymbol } from '../../domain/entities/game.entity.js';
+import type { GameRepository } from '../../domain/repositories/game.repository.js';
+import { Game } from '../../domain/entities/game.entity.js';
 
 export interface GameDocument {
   _id: string
@@ -13,6 +13,7 @@ export interface GameDocument {
   turn: PlayerSymbol
   status: GameStatus
   winner: PlayerSymbol | null
+  updatedAt?: Date
 }
 
 export class MongoGameRepository implements GameRepository {
@@ -28,6 +29,7 @@ export class MongoGameRepository implements GameRepository {
           turn: game.turn,
           status: game.status,
           winner: game.winner,
+          updatedAt: new Date(),
         },
       },
       { upsert: true },
