@@ -1,7 +1,12 @@
 import type { Express } from 'express';
+import type { Db } from 'mongodb';
+import type { LowdbData } from './adapters/repositories/lowdb-game.repository.js';
 import type { GameDocument } from './adapters/repositories/mongo-game.repository.js';
+import type { GameRepository } from './domain/repositories/game.repository.js';
 import process from 'node:process';
 import express from 'express';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb/node';
 import { pinoHttp } from 'pino-http';
 import { GameController } from './adapters/controllers/game.controller.js';
 import {
@@ -12,6 +17,7 @@ import {
 } from './adapters/controllers/game.validator.js';
 import { InMemoryGameEventPublisher } from './adapters/events/in-memory-game-event-publisher.adapter.js';
 import { MongoIdGenerator } from './adapters/id/mongo-id-generator.adapter.js';
+import { LowdbGameRepository } from './adapters/repositories/lowdb-game.repository.js';
 import { MongoGameRepository } from './adapters/repositories/mongo-game.repository.js';
 import { connectToDatabase } from './infrastructure/database/mongodb.js';
 import { openapiSpec } from './infrastructure/docs/openapi.js';
@@ -40,22 +46,37 @@ export async function createServer(): Promise<Express> {
   }));
 
   // Setup Database
-  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-  const dbName = process.env.DB_NAME || 'tictactoe';
-  const db = await connectToDatabase(mongoUri, dbName);
+  const dbType = process.env.DB_TYPE || 'mongodb';
+  let gameRepository: GameRepository;
+  let db: Db | null = null;
 
-  // Setup Repositories and Ports
-  const collection = db.collection<GameDocument>('games');
+  if (dbType === 'file' || dbType === 'lowdb') {
+    const dbPath = process.env.DB_FILE_PATH || 'db.json';
+    const adapter = new JSONFile<LowdbData>(dbPath);
+    const lowdbInstance = new Low<LowdbData>(adapter, { games: [] });
+    await lowdbInstance.read();
+    gameRepository = new LowdbGameRepository(lowdbInstance);
+  }
+  else {
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    const dbName = process.env.DB_NAME || 'tictactoe';
+    const mongoDb = await connectToDatabase(mongoUri, dbName);
+    db = mongoDb;
 
-  // Configure Indexes (safely for testing mocks)
-  if (collection && typeof collection.createIndex === 'function') {
-    await collection.createIndex({ 'players.X': 1 });
-    await collection.createIndex({ 'players.O': 1 });
-    const ttlSeconds = Number(process.env.DB_GAME_TTL) || 2592000; // default 30 days
-    await collection.createIndex({ updatedAt: 1 }, { expireAfterSeconds: ttlSeconds });
+    // Setup Repositories and Ports
+    const collection = mongoDb.collection<GameDocument>('games');
+
+    // Configure Indexes (safely for testing mocks)
+    if (collection && typeof collection.createIndex === 'function') {
+      await collection.createIndex({ 'players.X': 1 });
+      await collection.createIndex({ 'players.O': 1 });
+      const ttlSeconds = Number(process.env.DB_GAME_TTL) || 2592000; // default 30 days
+      await collection.createIndex({ updatedAt: 1 }, { expireAfterSeconds: ttlSeconds });
+    }
+
+    gameRepository = new MongoGameRepository(collection);
   }
 
-  const gameRepository = new MongoGameRepository(collection);
   const idGenerator = new MongoIdGenerator();
   const gameEventPublisher = new InMemoryGameEventPublisher();
 
@@ -77,10 +98,12 @@ export async function createServer(): Promise<Express> {
   // Routes
   app.get('/health', async (req, res) => {
     try {
-      await db.command({ ping: 1 });
+      if (db) {
+        await db.command({ ping: 1 });
+      }
       res.status(200).json({
         status: 'UP',
-        database: 'connected',
+        database: dbType === 'mongodb' ? 'connected' : 'file-based',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
       });

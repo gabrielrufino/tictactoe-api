@@ -4,6 +4,9 @@
 - This project uses `"module": "NodeNext"`. **All local imports must use the `.js` extension** (e.g., `import { createServer } from './index.js'`) even though the source files are `.ts`.
 - Omitting the `.js` extension or using `.ts` in imports will fail the TypeScript build and ESLint checks.
 
+## Dependencies Rule
+- All installed packages must have their versions strictly fixed in `package.json` (no `^` or `~` prefixes).
+
 ## Code Style & Conventions
 - **Code filenames must follow the file-type pattern** (e.g., `*.file-type.ts`, such as `*.use-case.ts`, `*.controller.ts`).
 
