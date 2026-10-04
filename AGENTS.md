@@ -5,7 +5,7 @@
 - Omitting the `.js` extension or using `.ts` in imports will fail the TypeScript build and ESLint checks.
 
 ## Code Style & Conventions
-- **Code filenames must be in kebab-case** (e.g., `my-file-name.ts`).
+- **Code filenames must follow the file-type pattern** (e.g., `*.file-type.ts`, such as `*.use-case.ts`, `*.controller.ts`).
 
 ## Architecture
 - Strictly adheres to **Clean Architecture**:
