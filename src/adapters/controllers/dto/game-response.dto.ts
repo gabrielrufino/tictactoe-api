@@ -1,4 +1,4 @@
-import type { Board, GameStatus, PlayerSymbol } from '../../../domain/entities/game.entity.js';
+import type { Board, GameStatus, PlayerSymbol } from '@/domain/entities/game.entity.js';
 
 export interface GameResponseDTO {
   readonly id: string

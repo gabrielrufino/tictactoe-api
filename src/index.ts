@@ -124,11 +124,11 @@ export async function createServer(): Promise<Express> {
   });
 
   app.use('/games', authenticate);
-  app.post('/games', validate(createGameSchema), gameController.create);
-  app.get('/games', validate(listGamesSchema), gameController.listGames);
-  app.get('/games/:id', validate(getGameSchema), gameController.getGame);
-  app.get('/games/:id/events', validate(getGameSchema), gameController.getEvents);
-  app.post('/games/:id/moves', validate(makeMoveSchema), gameController.makeMove);
+  app.post('/games', validate(createGameSchema), (req, res, next) => gameController.create(req, res, next));
+  app.get('/games', validate(listGamesSchema), (req, res, next) => gameController.listGames(req, res, next));
+  app.get('/games/:id', validate(getGameSchema), (req, res, next) => gameController.getGame(req, res, next));
+  app.get('/games/:id/events', validate(getGameSchema), (req, res, next) => gameController.getEvents(req, res, next));
+  app.post('/games/:id/moves', validate(makeMoveSchema), (req, res, next) => gameController.makeMove(req, res, next));
 
   app.use(errorHandler);
 

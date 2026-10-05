@@ -26,12 +26,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - id: package-version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
+            type=raw,value=${{ steps.package-version.outputs.version }}
             type=sha,prefix=,format=long
 
       - uses: docker/build-push-action@v6

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Game } from './game.entity.js';
 
-describe('game Entity', () => {
+describe(Game.name, () => {
   it('should create a game with initial playing state', () => {
     const game = Game.create('game-1', 'player-1', 'player-2');
     expect(game.id).toBe('game-1');
@@ -112,6 +112,8 @@ describe('game Entity', () => {
     expect(() => game.makeMove('X', 3, 0)).toThrow('Move out of bounds');
     expect(() => game.makeMove('X', 0, -1)).toThrow('Move out of bounds');
     expect(() => game.makeMove('X', 0, 3)).toThrow('Move out of bounds');
+    expect(() => game.makeMove('X', 1.5, 0)).toThrow('Move out of bounds');
+    expect(() => game.makeMove('X', NaN, 0)).toThrow('Move out of bounds');
   });
 
   it('should detect draw', () => {

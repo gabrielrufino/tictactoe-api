@@ -174,6 +174,20 @@ describe(GameController.name, () => {
       });
     });
 
+    it('should prioritize req.player as the filter when authenticated as a player', async () => {
+      req.query = { player: 'Bob' };
+      req.player = 'Alice';
+      listGamesUseCaseMock.execute.mockResolvedValue([]);
+
+      await controller.listGames(req as Request, res as Response, next);
+
+      expect(listGamesUseCaseMock.execute).toHaveBeenCalledWith({
+        player: 'Alice',
+        page: undefined,
+        limit: undefined,
+      });
+    });
+
     it('should call next with error if execute throws', async () => {
       req.query = {};
       const error = new Error('Some error');

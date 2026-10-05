@@ -17,7 +17,7 @@ vi.mock('../../src/infrastructure/database/mongodb.js', () => {
   };
 });
 
-describe('e2E: Health API', () => {
+describe('health API (e2e)', () => {
   afterAll(async () => {
     await disconnectFromDatabase();
   });

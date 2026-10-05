@@ -77,7 +77,7 @@ export class Game {
       throw new InvalidMoveError(`It is not player ${playerSymbol}'s turn`);
     }
 
-    if (row < 0 || row > 2 || col < 0 || col > 2) {
+    if (!Number.isInteger(row) || !Number.isInteger(col) || row < 0 || row > 2 || col < 0 || col > 2) {
       throw new InvalidMoveError('Move out of bounds');
     }
 

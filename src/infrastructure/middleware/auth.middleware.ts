@@ -5,7 +5,7 @@ import process from 'node:process';
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
     return;
   }

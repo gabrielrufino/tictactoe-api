@@ -15,7 +15,7 @@ export class GameController {
     private readonly gameEventPublisher: GameEventSubscriber,
   ) {}
 
-  public create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { playerX, playerO } = req.body;
       const game = await this.createGameUseCase.execute({ playerX, playerO });
@@ -24,9 +24,9 @@ export class GameController {
     catch (error) {
       next(error);
     }
-  };
+  }
 
-  public makeMove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public async makeMove(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const { playerSymbol, row, col } = req.body;
@@ -42,9 +42,9 @@ export class GameController {
     catch (error) {
       next(error);
     }
-  };
+  }
 
-  public getGame = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public async getGame(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const game = await this.getGameUseCase.execute({
@@ -56,13 +56,13 @@ export class GameController {
     catch (error) {
       next(error);
     }
-  };
+  }
 
-  public listGames = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public async listGames(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { player, page, limit } = req.query;
       const games = await this.listGamesUseCase.execute({
-        player: player ? String(player) : undefined,
+        player: (req as any).player ?? (player ? String(player) : undefined),
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
       });
@@ -71,9 +71,9 @@ export class GameController {
     catch (error) {
       next(error);
     }
-  };
+  }
 
-  public getEvents = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public async getEvents(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
       const gameId = String(id);
@@ -133,5 +133,5 @@ export class GameController {
     catch (error) {
       next(error);
     }
-  };
+  }
 }
