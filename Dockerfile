@@ -29,7 +29,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install only production dependencies (excluding devDependencies)
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 # Copy the compiled production assets from the builder stage
 COPY --from=builder /usr/src/app/dist ./dist
