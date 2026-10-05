@@ -1,0 +1,11 @@
+node_modules
+dist
+.stryker-tmp
+reports
+.git
+.github
+.husky
+.eslintrc.json
+eslint.config.js
+stryker.config.json
+*.md

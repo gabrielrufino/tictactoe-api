@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.stryker-mutator.io/stryker-config.json",
+  "packageManager": "npm",
+  "reporters": [
+    "html",
+    "clear-text",
+    "progress"
+  ],
+  "testRunner": "vitest",
+  "inPlace": true,
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.spec.ts",
+    "!src/index.ts",
+    "!src/infrastructure/database/mongodb.ts"
+  ],
+  "concurrency": 2
+}
