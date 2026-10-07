@@ -1,13 +1,11 @@
 import type { Express } from 'express';
-import type { Db } from 'mongodb';
-import type { LowdbData } from './adapters/repositories/lowdb-game.repository.js';
 import type { GameDocument } from './adapters/repositories/mongo-game.repository.js';
 import type { GameRepository } from './domain/repositories/game.repository.js';
 import process from 'node:process';
 import express from 'express';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
 import { pinoHttp } from 'pino-http';
+import { AuthController } from './adapters/controllers/auth.controller.js';
+import { guestTokenSchema } from './adapters/controllers/auth.validator.js';
 import { GameController } from './adapters/controllers/game.controller.js';
 import {
   createGameSchema,
@@ -17,7 +15,6 @@ import {
 } from './adapters/controllers/game.validator.js';
 import { InMemoryGameEventPublisher } from './adapters/events/in-memory-game-event-publisher.adapter.js';
 import { MongoIdGenerator } from './adapters/id/mongo-id-generator.adapter.js';
-import { LowdbGameRepository } from './adapters/repositories/lowdb-game.repository.js';
 import { MongoGameRepository } from './adapters/repositories/mongo-game.repository.js';
 import { connectToDatabase } from './infrastructure/database/mongodb.js';
 import { openapiSpec } from './infrastructure/docs/openapi.js';
@@ -26,6 +23,7 @@ import { authenticate } from './infrastructure/middleware/auth.middleware.js';
 import { errorHandler } from './infrastructure/middleware/error.middleware.js';
 import { validate } from './infrastructure/middleware/validation.middleware.js';
 import { CreateGameUseCase } from './use-cases/create-game.use-case.js';
+import { CreateGuestTokenUseCase } from './use-cases/create-guest-token.use-case.js';
 import { GetGameUseCase } from './use-cases/get-game.use-case.js';
 import { ListGamesUseCase } from './use-cases/list-games.use-case.js';
 import { MakeMoveUseCase } from './use-cases/make-move.use-case.js';
@@ -46,36 +44,22 @@ export async function createServer(): Promise<Express> {
   }));
 
   // Setup Database
-  const dbType = process.env.DB_TYPE || 'mongodb';
-  let gameRepository: GameRepository;
-  let db: Db | null = null;
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  const dbName = process.env.DB_NAME || 'tictactoe';
+  const db = await connectToDatabase(mongoUri, dbName);
 
-  if (dbType === 'file' || dbType === 'lowdb') {
-    const dbPath = process.env.DB_FILE_PATH || 'db.json';
-    const adapter = new JSONFile<LowdbData>(dbPath);
-    const lowdbInstance = new Low<LowdbData>(adapter, { games: [] });
-    await lowdbInstance.read();
-    gameRepository = new LowdbGameRepository(lowdbInstance);
+  // Setup Repositories and Ports
+  const collection = db.collection<GameDocument>('games');
+
+  // Configure Indexes (safely for testing mocks)
+  if (collection && typeof collection.createIndex === 'function') {
+    await collection.createIndex({ 'players.X': 1 });
+    await collection.createIndex({ 'players.O': 1 });
+    const ttlSeconds = Number(process.env.DB_GAME_TTL) || 2592000; // default 30 days
+    await collection.createIndex({ updatedAt: 1 }, { expireAfterSeconds: ttlSeconds });
   }
-  else {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    const dbName = process.env.DB_NAME || 'tictactoe';
-    const mongoDb = await connectToDatabase(mongoUri, dbName);
-    db = mongoDb;
 
-    // Setup Repositories and Ports
-    const collection = mongoDb.collection<GameDocument>('games');
-
-    // Configure Indexes (safely for testing mocks)
-    if (collection && typeof collection.createIndex === 'function') {
-      await collection.createIndex({ 'players.X': 1 });
-      await collection.createIndex({ 'players.O': 1 });
-      const ttlSeconds = Number(process.env.DB_GAME_TTL) || 2592000; // default 30 days
-      await collection.createIndex({ updatedAt: 1 }, { expireAfterSeconds: ttlSeconds });
-    }
-
-    gameRepository = new MongoGameRepository(collection);
-  }
+  const gameRepository: GameRepository = new MongoGameRepository(collection);
 
   const idGenerator = new MongoIdGenerator();
   const gameEventPublisher = new InMemoryGameEventPublisher();
@@ -85,6 +69,7 @@ export async function createServer(): Promise<Express> {
   const getGameUseCase = new GetGameUseCase(gameRepository);
   const makeMoveUseCase = new MakeMoveUseCase(gameRepository, gameEventPublisher);
   const listGamesUseCase = new ListGamesUseCase(gameRepository);
+  const createGuestTokenUseCase = new CreateGuestTokenUseCase();
 
   // Setup Controller
   const gameController = new GameController(
@@ -94,6 +79,7 @@ export async function createServer(): Promise<Express> {
     listGamesUseCase,
     gameEventPublisher,
   );
+  const authController = new AuthController(createGuestTokenUseCase);
 
   // Routes
   app.get('/health', async (req, res) => {
@@ -103,7 +89,7 @@ export async function createServer(): Promise<Express> {
       }
       res.status(200).json({
         status: 'UP',
-        database: dbType === 'mongodb' ? 'connected' : 'file-based',
+        database: 'connected',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
       });
@@ -122,6 +108,39 @@ export async function createServer(): Promise<Express> {
   app.get('/openapi.json', (req, res) => {
     res.status(200).json(openapiSpec);
   });
+
+  app.get('/docs', (req, res) => {
+    res.status(200).send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe API - Swagger UI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/openapi.json',
+        dom_id: '#swagger-ui',
+      });
+    };
+  </script>
+</body>
+</html>
+    `);
+  });
+
+  app.post('/auth/guest', validate(guestTokenSchema), (req, res, next) => authController.createGuestToken(req, res, next));
 
   app.use('/games', authenticate);
   app.post('/games', validate(createGameSchema), (req, res, next) => gameController.create(req, res, next));

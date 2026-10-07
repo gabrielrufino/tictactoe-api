@@ -1,5 +1,6 @@
 import { OpenApiGeneratorV3, OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { guestTokenSchema } from '../../adapters/controllers/auth.validator.js';
 import {
   createGameSchema,
   getGameSchema,
@@ -246,6 +247,45 @@ registry.registerPath({
     },
     404: {
       description: 'Game not found',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+// /auth/guest (POST)
+registry.registerPath({
+  method: 'post',
+  path: '/auth/guest',
+  summary: 'Create a signed guest token for player authentication',
+  request: {
+    body: {
+      required: false,
+      content: {
+        'application/json': {
+          schema: guestTokenSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Guest token created successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            token: z.string().openapi({ example: 'player:Alice:abcdef...' }),
+            name: z.string().openapi({ example: 'Alice' }),
+            bearer: z.string().openapi({ example: 'Bearer player:Alice:abcdef...' }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad Request',
       content: {
         'application/json': {
           schema: ErrorResponseSchema,

@@ -44,4 +44,14 @@ describe('health API (e2e)', () => {
     expect(response.body).toHaveProperty('info');
     expect(response.body.info).toHaveProperty('title', 'Tic-Tac-Toe API');
   });
+
+  it('should return 200 and Swagger UI HTML on /docs', async () => {
+    const app = await createServer();
+    const response = await request(app)
+      .get('/docs')
+      .expect(200);
+
+    expect(response.text).toContain('SwaggerUIBundle');
+    expect(response.text).toContain('/openapi.json');
+  });
 });
