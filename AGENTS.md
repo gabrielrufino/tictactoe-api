@@ -30,7 +30,7 @@
 - Mutation testing: `npm run test:mutation` (uses Stryker)
 
 ## Developer Commands
-- Run Dev Server: `npm run dev` (uses `tsx watch`, no build required)
+- Run Dev Server: `npm run start:dev` (uses `tsx watch`, no build required)
 - Build Project: `npm run build` (required before `npm start`)
 - Run Production: `npm start`
 - Run Linting: `npm run lint` / Auto-fix: `npm run lint:fix`
