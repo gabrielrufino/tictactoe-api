@@ -17,7 +17,10 @@ export const leaveQueueSchema = z.object({
 
 export const getMatchmakingStatusSchema = z.object({
   query: z.object({
-    includePlayers: z.coerce.boolean().optional().openapi({ description: 'Include waiting player names', default: false }),
+    includePlayers: z.preprocess(
+      val => val === 'true' ? true : val === 'false' ? false : val,
+      z.boolean().optional(),
+    ).openapi({ description: 'Include waiting player names', default: false }),
   }),
 });
 

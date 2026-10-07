@@ -41,12 +41,12 @@ export class JoinQueueUseCase {
       const playerO = players[1];
       const opponentName = players.find(p => p !== playerName) ?? '';
 
-      this.queue.removePlayer(playerX);
-      this.queue.removePlayer(playerO);
-
       const id = this.idGenerator.generate();
       const game = Game.create(id, playerX, playerO);
       await this.gameRepository.save(game);
+
+      this.queue.removePlayer(playerX);
+      this.queue.removePlayer(playerO);
 
       this.eventPublisher.publish({
         type: 'MATCH_FOUND',

@@ -5,7 +5,7 @@ extendZodWithOpenApi(z);
 
 export const guestTokenSchema = z.object({
   body: z.object({
-    name: z.string().min(1, 'name cannot be empty').optional().openapi({ description: 'Name of the guest player', example: 'Alice' }),
+    name: z.string().min(1, 'name cannot be empty').refine(val => !val.includes(':'), 'name cannot contain colons').optional().openapi({ description: 'Name of the guest player', example: 'Alice' }),
   }).optional(),
 });
 

@@ -20,7 +20,7 @@ export class CreateGuestTokenUseCase {
 
     const name = input.name && input.name.trim().length > 0
       ? input.name.trim()
-      : `Guest_${Math.floor(Math.random() * 90000 + 10000)}`;
+      : `Guest_${crypto.randomInt(10000, 100000)}`;
 
     const signature = crypto
       .createHmac('sha256', expectedToken)

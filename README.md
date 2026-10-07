@@ -20,7 +20,7 @@ Robust, production-ready Tic-Tac-Toe REST API built with TypeScript, Express, an
 
 ## Prerequisites
 
-- Node.js (v18+ recommended)
+- Node.js (v20.19.0+ or later)
 - MongoDB (running locally or remote URI)
 
 ## Environment Variables

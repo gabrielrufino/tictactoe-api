@@ -194,7 +194,7 @@
     </div>
     <div style="display:flex;gap:0.75rem;margin-bottom:1rem">
       <button class="btn-primary" id="joinBtn" onclick="joinQueue()">Entrar na Fila</button>
-      <button class="btn-danger" id="leaveBtn" class="hidden" onclick="leaveQueue()">Sair da Fila</button>
+      <button class="btn-danger hidden" id="leaveBtn" onclick="leaveQueue()">Sair da Fila</button>
     </div>
     <div id="queueArea">
       <div class="empty-state">Aguardando jogadores na fila...</div>
@@ -381,10 +381,16 @@ function renderGame(game) {
   statusEl.textContent = game.status;
   statusEl.className = `game-status ${game.status.toLowerCase()}`;
 
-  document.getElementById('playersInfo').innerHTML = `
-    <span class="player-badge x">X: ${game.players.X}</span>
-    <span class="player-badge o">O: ${game.players.O}</span>
-  `;
+  const playersInfoEl = document.getElementById('playersInfo');
+  playersInfoEl.innerHTML = '';
+  const badgeX = document.createElement('span');
+  badgeX.className = 'player-badge x';
+  badgeX.textContent = `X: ${game.players.X}`;
+  const badgeO = document.createElement('span');
+  badgeO.className = 'player-badge o';
+  badgeO.textContent = `O: ${game.players.O}`;
+  playersInfoEl.appendChild(badgeX);
+  playersInfoEl.appendChild(badgeO);
 
   document.getElementById('winnerInfo').textContent =
     game.status === 'WON' ? `🏆 Vencedor: ${game.players[game.winner]}` :
@@ -422,16 +428,30 @@ async function listGames() {
 
 function renderGamesList(games) {
   const ul = document.getElementById('gamesList');
+  ul.innerHTML = '';
   if (!games.length) {
-    ul.innerHTML = '<li class="empty-state">Nenhum jogo</li>';
+    const li = document.createElement('li');
+    li.className = 'empty-state';
+    li.textContent = 'Nenhum jogo';
+    ul.appendChild(li);
     return;
   }
-  ul.innerHTML = games.map(g => `
-    <li>
-      <span>${g.players.X} vs ${g.players.O} — <strong>${g.status}</strong></span>
-      <button onclick="loadGame('${g.id}')">Entrar</button>
-    </li>
-  `).join('');
+  for (const g of games) {
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.textContent = `${g.players.X} vs ${g.players.O} — `;
+    const strong = document.createElement('strong');
+    strong.textContent = g.status;
+    span.appendChild(strong);
+    li.appendChild(span);
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Entrar';
+    btn.onclick = () => loadGame(g.id);
+    li.appendChild(btn);
+
+    ul.appendChild(li);
+  }
 }
 
 function connectGameEvents(gameId) {
