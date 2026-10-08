@@ -1,13 +1,13 @@
 import http from 'node:http';
 import request from 'supertest';
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { createServer } from '../../src/index.js';
-import { disconnectFromDatabase } from '../../src/infrastructure/database/mongodb.js';
+import { createServer } from '@/index.js';
+import { disconnectFromDatabase } from '@/infrastructure/database/mongodb.js';
 
 process.env.API_TOKEN = 'secret-token';
 
 // Mock DB connection and collection at the top-level
-vi.mock('../../src/infrastructure/database/mongodb.js', () => {
+vi.mock('@/infrastructure/database/mongodb.js', () => {
   const mockGames: any[] = [];
   const mockCollection = {
     insertOne: vi.fn().mockImplementation(async (doc) => {

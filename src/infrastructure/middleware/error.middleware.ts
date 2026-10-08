@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
-import { DomainError, GameNotFoundError } from '../../domain/errors/game.error.js';
-import { logger } from '../logger.js';
+import { DomainError, GameNotFoundError } from '@/domain/errors/game.error.js';
+import { logger } from '@/infrastructure/logger.js';
 
 export function errorHandler(
   error: Error,

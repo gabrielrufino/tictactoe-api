@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { CreateGuestTokenUseCase } from '../../use-cases/create-guest-token.use-case.js';
+import type { CreateGuestTokenUseCase } from '@/use-cases/create-guest-token.use-case.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AuthController } from './auth.controller.js';
+import { AuthController } from '@/adapters/controllers/auth.controller.js';
 
 describe('authController', () => {
   let req: Partial<Request>;

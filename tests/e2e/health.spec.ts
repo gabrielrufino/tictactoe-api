@@ -1,11 +1,11 @@
 import request from 'supertest';
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { createServer } from '../../src/index.js';
-import { disconnectFromDatabase } from '../../src/infrastructure/database/mongodb.js';
+import { createServer } from '@/index.js';
+import { disconnectFromDatabase } from '@/infrastructure/database/mongodb.js';
 
 process.env.API_TOKEN = 'secret-token';
 
-vi.mock('../../src/infrastructure/database/mongodb.js', () => {
+vi.mock('@/infrastructure/database/mongodb.js', () => {
   const mockDb = {
     collection: vi.fn(),
     command: vi.fn().mockResolvedValue({ ok: 1 }),

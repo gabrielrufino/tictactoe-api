@@ -1,4 +1,4 @@
-import type { Game } from '../entities/game.entity.js';
+import type { Game } from '@/domain/entities/game.entity.js';
 
 export interface GameRepository {
   save: (game: Game) => Promise<void>

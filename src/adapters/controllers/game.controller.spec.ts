@@ -1,14 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { Mock, Mocked } from 'vitest';
-import type { CreateGameUseCase } from '../../use-cases/create-game.use-case.js';
-import type { GetGameUseCase } from '../../use-cases/get-game.use-case.js';
-import type { ListGamesUseCase } from '../../use-cases/list-games.use-case.js';
-import type { MakeMoveUseCase } from '../../use-cases/make-move.use-case.js';
-import type { GameEventSubscriber } from '../../use-cases/ports/game-event-publisher.port.js';
+import type { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
+import type { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
+import type { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
+import type { MakeMoveUseCase } from '@/use-cases/make-move.use-case.js';
+import type { GameEventSubscriber } from '@/use-cases/ports/game-event-publisher.port.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Game } from '../../domain/entities/game.entity.js';
-import { GameMapper } from './dto/game.mapper.js';
-import { GameController } from './game.controller.js';
+import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
+import { GameController } from '@/adapters/controllers/game.controller.js';
+import { Game } from '@/domain/entities/game.entity.js';
 
 describe(GameController.name, () => {
   let createGameUseCaseMock: Mocked<CreateGameUseCase>;

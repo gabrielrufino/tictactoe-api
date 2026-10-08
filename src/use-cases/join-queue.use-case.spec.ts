@@ -1,9 +1,9 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { IdGenerator } from './ports/id-generator.port.js';
-import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from './ports/matchmaking-event.port.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import type { IdGenerator } from '@/use-cases/ports/id-generator.port.js';
+import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
 import { describe, expect, it, vi } from 'vitest';
-import { Game } from '../domain/entities/game.entity.js';
-import { JoinQueueUseCase } from './join-queue.use-case.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { JoinQueueUseCase } from '@/use-cases/join-queue.use-case.js';
 
 function createMockQueue(initialPlayers: string[]) {
   let players = [...initialPlayers];

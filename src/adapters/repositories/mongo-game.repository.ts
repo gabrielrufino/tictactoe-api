@@ -1,8 +1,8 @@
 import type { Collection } from 'mongodb';
-import type { Board, GameStatus, PlayerSymbol } from '../../domain/entities/game.entity.js';
-import type { GameRepository } from '../../domain/repositories/game.repository.js';
-import { Game } from '../../domain/entities/game.entity.js';
-import { ConflictError, GameNotFoundError } from '../../domain/errors/game.error.js';
+import type { Board, GameStatus, PlayerSymbol } from '@/domain/entities/game.entity.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { ConflictError, GameNotFoundError } from '@/domain/errors/game.error.js';
 
 export interface GameDocument {
   _id: string

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CreateGuestTokenUseCase } from './create-guest-token.use-case.js';
+import { CreateGuestTokenUseCase } from '@/use-cases/create-guest-token.use-case.js';
 
 process.env.API_TOKEN = 'secret-token';
 

@@ -1,7 +1,7 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
 import { describe, expect, it, vi } from 'vitest';
-import { Game } from '../domain/entities/game.entity.js';
-import { GetGameUseCase } from './get-game.use-case.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
 
 describe(GetGameUseCase.name, () => {
   it('should retrieve a game by ID and map to DTO', async () => {

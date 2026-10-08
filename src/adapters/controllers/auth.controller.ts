@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { CreateGuestTokenUseCase } from '../../use-cases/create-guest-token.use-case.js';
+import type { CreateGuestTokenUseCase } from '@/use-cases/create-guest-token.use-case.js';
 
 export class AuthController {
   constructor(private readonly createGuestTokenUseCase: CreateGuestTokenUseCase) {}

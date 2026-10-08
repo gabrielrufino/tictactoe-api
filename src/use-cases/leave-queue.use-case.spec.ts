@@ -1,6 +1,6 @@
-import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from './ports/matchmaking-event.port.js';
+import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
 import { describe, expect, it, vi } from 'vitest';
-import { LeaveQueueUseCase } from './leave-queue.use-case.js';
+import { LeaveQueueUseCase } from '@/use-cases/leave-queue.use-case.js';
 
 function createMockQueue(initialPlayers: string[]) {
   let players = [...initialPlayers];

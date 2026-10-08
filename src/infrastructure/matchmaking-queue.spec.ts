@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MatchmakingQueueImpl } from './matchmaking-queue.js';
+import { MatchmakingQueueImpl } from '@/infrastructure/matchmaking-queue.js';
 
 describe(MatchmakingQueueImpl.name, () => {
   it('should start with empty queue', () => {

@@ -1,12 +1,12 @@
 import { OpenApiGeneratorV3, OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { guestTokenSchema } from '../../adapters/controllers/auth.validator.js';
+import { guestTokenSchema } from '@/adapters/controllers/auth.validator.js';
 import {
   createGameSchema,
   getGameSchema,
   listGamesSchema,
   makeMoveSchema,
-} from '../../adapters/controllers/game.validator.js';
+} from '@/adapters/controllers/game.validator.js';
 
 const registry = new OpenAPIRegistry();
 

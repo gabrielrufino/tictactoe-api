@@ -1,4 +1,4 @@
-import type { MatchmakingEvent, MatchmakingEventPublisher } from '../../use-cases/ports/matchmaking-event.port.js';
+import type { MatchmakingEvent, MatchmakingEventPublisher } from '@/use-cases/ports/matchmaking-event.port.js';
 
 export class InMemoryMatchmakingEventPublisher implements MatchmakingEventPublisher {
   private readonly listeners: Set<(event: MatchmakingEvent) => void> = new Set();

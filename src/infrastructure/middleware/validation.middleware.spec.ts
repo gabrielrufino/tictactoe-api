@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { validate } from './validation.middleware.js';
+import { validate } from '@/infrastructure/middleware/validation.middleware.js';
 
 describe('validationMiddleware', () => {
   let req: Partial<Request>;
