@@ -27,8 +27,9 @@ describe('e2E: Auth & Guest Token API', () => {
       .expect(201);
 
     expect(response.body).toHaveProperty('token');
+    expect(response.body).toHaveProperty('playerId');
     expect(response.body.name).toBe('Alice');
-    expect(response.body.token).toMatch(/^player:Alice:[0-9a-f]{64}$/);
+    expect(response.body.token).toMatch(/^player:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{64}$/);
     expect(response.body.bearer).toBe(`Bearer ${response.body.token}`);
   });
 
@@ -40,7 +41,8 @@ describe('e2E: Auth & Guest Token API', () => {
       .expect(201);
 
     expect(response.body).toHaveProperty('token');
-    expect(response.body.name).toMatch(/^Guest_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-    expect(response.body.token).toMatch(new RegExp(`^player:${response.body.name}:[0-9a-f]{64}$`));
+    expect(response.body).toHaveProperty('playerId');
+    expect(response.body.name).toMatch(/^Guest_[0-9a-f]{5}$/);
+    expect(response.body.token).toMatch(new RegExp(`^player:${response.body.playerId}:[0-9a-f]{64}$`));
   });
 });

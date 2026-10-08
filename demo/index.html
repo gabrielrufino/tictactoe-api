@@ -454,49 +454,88 @@ function renderGamesList(games) {
   }
 }
 
+function connectSSE(url, options = {}) {
+  const { headers = {}, onopen, onmessage, onerror } = options;
+  let closed = false;
+
+  fetch(url, { headers })
+    .then((res) => {
+      if (closed) return;
+      if (!res.ok) { onerror?.(); return; }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      function read() {
+        reader.read().then(({ done, value }) => {
+          if (done || closed) return;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';
+
+          for (const part of parts) {
+            const trimmed = part.trim();
+            if (!trimmed || trimmed.startsWith(':')) continue;
+            if (trimmed.startsWith('data:')) {
+              const data = trimmed.slice(5).trim();
+              try { onmessage?.(JSON.parse(data)); } catch {}
+            }
+          }
+
+          read();
+        }).catch(() => { onerror?.(); });
+      }
+
+      onopen?.();
+      read();
+    })
+    .catch(() => { onerror?.(); });
+
+  return {
+    close: () => { closed = true; },
+  };
+}
+
 function connectGameEvents(gameId) {
   if (eventSource) eventSource.close();
-  const ev = new EventSource(`${API_BASE}/games/${gameId}/events?token=${token}`);
-  eventSource = ev;
-  ev.onopen = () => {
-    document.getElementById('connDot').className = 'connection-dot online';
-    addLog('Conectado ao stream do jogo', 'success');
-  };
-  ev.onmessage = (msg) => {
-    try {
-      const game = JSON.parse(msg.data);
-      currentGame = game;
-      renderGame(game);
-    } catch {}
-  };
-  ev.onerror = () => {
-    document.getElementById('connDot').className = 'connection-dot offline';
-    addLog('Stream do jogo desconectado', 'error');
-  };
+  eventSource = connectSSE(`${API_BASE}/games/${gameId}/events`, {
+    headers: { Authorization: `Bearer ${token}` },
+    onopen: () => {
+      document.getElementById('connDot').className = 'connection-dot online';
+      addLog('Conectado ao stream do jogo', 'success');
+    },
+    onmessage: (data) => {
+      currentGame = data;
+      renderGame(data);
+    },
+    onerror: () => {
+      document.getElementById('connDot').className = 'connection-dot offline';
+      addLog('Stream do jogo desconectado', 'error');
+    },
+  });
 }
 
 function connectMatchmakingEvents() {
   if (matchmakingSource) matchmakingSource.close();
-  const ev = new EventSource(`${API_BASE}/matchmaking/events?token=${token}`);
-  matchmakingSource = ev;
-  ev.onopen = () => addLog('Conectado ao stream de matchmaking', 'success');
-  ev.onmessage = (msg) => {
-    try {
-      const event = JSON.parse(msg.data);
-      addLog(`[MATCHMAKING] ${event.type}${event.playerName ? ': ' + event.playerName : ''}${event.opponentName ? ' vs ' + event.opponentName : ''}${event.gameId ? ' jogo:' + event.gameId : ''}`, 'info');
+  matchmakingSource = connectSSE(`${API_BASE}/matchmaking/events`, {
+    onopen: () => addLog('Conectado ao stream de matchmaking', 'success'),
+    onmessage: (event) => {
+      try {
+        addLog(`[MATCHMAKING] ${event.type}${event.playerName ? ': ' + event.playerName : ''}${event.opponentName ? ' vs ' + event.opponentName : ''}${event.gameId ? ' jogo:' + event.gameId : ''}`, 'info');
 
-      if (event.type === 'MATCH_FOUND' && event.gameId) {
-        addLog('Match encontrado! Carregando jogo...', 'success');
-        loadGame(event.gameId);
-      }
-      if (event.type === 'PLAYER_LEFT') {
-        updateQueueStatus('left');
-      }
-    } catch {}
-  };
-  ev.onerror = () => {
-    addLog('Stream de matchmaking desconectado', 'error');
-  };
+        if (event.type === 'MATCH_FOUND' && event.gameId) {
+          addLog('Match encontrado! Carregando jogo...', 'success');
+          loadGame(event.gameId);
+        }
+        if (event.type === 'PLAYER_LEFT') {
+          updateQueueStatus('left');
+        }
+      } catch {}
+    },
+    onerror: () => {
+      addLog('Stream de matchmaking desconectado', 'error');
+    },
+  });
 }
 
 function addLog(msg, type = '') {

@@ -11,6 +11,7 @@ process.env.API_TOKEN = 'secret-token';
 vi.mock('@/infrastructure/database/mongodb.js', () => {
   const mockGames: any[] = [];
   const mockCollection = {
+    createIndex: vi.fn(),
     insertOne: vi.fn().mockImplementation(async (doc) => {
       const existing = mockGames.find(g => g._id === doc._id);
       if (existing) {
@@ -235,7 +236,7 @@ describe('e2E: Games API', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    it('should filter games by player query parameter', async () => {
+    it('should return all games when using master token', async () => {
       const app = await createServer();
       const token = 'Bearer secret-token';
 

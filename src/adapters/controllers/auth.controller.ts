@@ -14,6 +14,7 @@ export class AuthController {
       res.status(201).json({
         token: result.token,
         name: result.name,
+        playerId: result.playerId,
         bearer: `Bearer ${result.token}`,
       });
     }

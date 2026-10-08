@@ -12,6 +12,7 @@ vi.mock('@/infrastructure/database/mongodb.js', () => {
   };
 
   const mockCollection = {
+    createIndex: vi.fn(),
     updateOne: vi.fn(),
     findOne: vi.fn(),
     find: vi.fn(() => mockCursor),

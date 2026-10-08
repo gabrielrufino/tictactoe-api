@@ -24,12 +24,10 @@ export class CreateGameUseCase {
       throw new ValidationError('playerX and playerO must be different players');
     }
 
-    if (input.authenticatedPlayer) {
-      if (input.authenticatedPlayer !== input.playerX && input.authenticatedPlayer !== input.playerO) {
-        throw new ValidationError(
-          `Unauthorized: Authenticated player ${input.authenticatedPlayer} must be one of playerX or playerO`,
-        );
-      }
+    if (input.authenticatedPlayer && input.authenticatedPlayer !== input.playerX && input.authenticatedPlayer !== input.playerO) {
+      throw new ValidationError(
+        `Unauthorized: Authenticated player ${input.authenticatedPlayer} must be one of playerX or playerO`,
+      );
     }
 
     const id = this.idGenerator.generate();

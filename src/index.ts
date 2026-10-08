@@ -1,6 +1,7 @@
 import type { Express } from 'express';
 import type { GameDocument } from '@/adapters/repositories/mongo-game.repository.js';
 import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import crypto from 'node:crypto';
 import process from 'node:process';
 import express from 'express';
 import helmet from 'helmet';
@@ -42,11 +43,13 @@ export async function createServer(): Promise<Express> {
   }
 
   const app = express();
+  const nonce = crypto.randomUUID();
   app.use(helmet({
     contentSecurityPolicy: {
+      useDefaults: true,
       directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        'script-src': ['\'self\'', 'https://unpkg.com'],
+        'script-src': ['\'self\'', `'nonce-${nonce}'`, 'https://unpkg.com'],
+        'style-src': ['\'self\'', 'https://unpkg.com'],
       },
     },
   }));
@@ -68,7 +71,7 @@ export async function createServer(): Promise<Express> {
   // Setup Repositories and Ports
   const collection = db.collection<GameDocument>('games');
 
-  // Configure Indexes (safely for testing mocks)
+  // Configure Indexes
   if (collection && typeof collection.createIndex === 'function') {
     await collection.createIndex({ 'players.X': 1 });
     await collection.createIndex({ 'players.O': 1 });
@@ -121,7 +124,7 @@ export async function createServer(): Promise<Express> {
         timestamp: new Date().toISOString(),
       });
     }
-    catch (error: any) {
+    catch (error) {
       logger.error({ error }, 'Database health check failed');
       res.status(503).json({
         status: 'DOWN',
@@ -137,6 +140,8 @@ export async function createServer(): Promise<Express> {
   });
 
   app.get('/docs', (req, res) => {
+    const nonce = crypto.randomUUID();
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'nonce-${nonce}' https://unpkg.com; style-src 'self' https://unpkg.com;`);
     res.status(200).send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -154,7 +159,7 @@ export async function createServer(): Promise<Express> {
 <body>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
-  <script>
+  <script nonce="${nonce}">
     window.onload = () => {
       window.ui = SwaggerUIBundle({
         url: '/openapi.json',
@@ -167,10 +172,10 @@ export async function createServer(): Promise<Express> {
     `);
   });
 
-  app.post('/matchmaking/join', validate(joinQueueSchema), (req, res, next) => matchmakingController.join(req, res, next));
-  app.delete('/matchmaking/leave', validate(leaveQueueSchema), (req, res, next) => matchmakingController.leave(req, res, next));
+  app.post('/matchmaking/join', authenticate, validate(joinQueueSchema), (req, res, next) => matchmakingController.join(req, res, next));
+  app.delete('/matchmaking/leave', authenticate, validate(leaveQueueSchema), (req, res, next) => matchmakingController.leave(req, res, next));
   app.get('/matchmaking/status', validate(getMatchmakingStatusSchema), (req, res, next) => matchmakingController.getStatus(req, res, next));
-  app.get('/matchmaking/events', (req, res, next) => matchmakingController.getEvents(req, res, next));
+  app.get('/matchmaking/events', authenticate, (req, res, next) => matchmakingController.getEvents(req, res, next));
 
   app.post('/auth/guest', validate(guestTokenSchema), (req, res, next) => authController.createGuestToken(req, res, next));
 

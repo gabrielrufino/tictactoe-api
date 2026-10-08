@@ -6,8 +6,15 @@ import { disconnectFromDatabase } from '@/infrastructure/database/mongodb.js';
 process.env.API_TOKEN = 'secret-token';
 
 vi.mock('@/infrastructure/database/mongodb.js', () => {
+  const mockCollection = {
+    createIndex: vi.fn(),
+    updateOne: vi.fn(),
+    findOne: vi.fn(),
+    find: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+  };
+
   const mockDb = {
-    collection: vi.fn(),
+    collection: vi.fn().mockReturnValue(mockCollection),
     command: vi.fn().mockResolvedValue({ ok: 1 }),
   };
 

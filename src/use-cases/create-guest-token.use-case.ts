@@ -8,6 +8,7 @@ export interface CreateGuestTokenInput {
 export interface CreateGuestTokenResult {
   token: string
   name: string
+  playerId: string
 }
 
 export class CreateGuestTokenUseCase {
@@ -18,20 +19,22 @@ export class CreateGuestTokenUseCase {
       throw new Error('API_TOKEN is not configured');
     }
 
+    const playerId = crypto.randomUUID();
     const name = input.name && input.name.trim().length > 0
       ? input.name.trim()
-      : `Guest_${crypto.randomUUID()}`;
+      : `Guest_${playerId.slice(0, 5)}`;
 
     const signature = crypto
       .createHmac('sha256', expectedToken)
-      .update(name)
+      .update(playerId)
       .digest('hex');
 
-    const token = `player:${name}:${signature}`;
+    const token = `player:${playerId}:${signature}`;
 
     return {
       token,
       name,
+      playerId,
     };
   }
 }

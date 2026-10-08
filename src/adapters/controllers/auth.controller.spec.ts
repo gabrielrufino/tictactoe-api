@@ -7,8 +7,8 @@ describe(AuthController.name, () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;
-  let jsonMock: any;
-  let statusMock: any;
+  let jsonMock: ReturnType<typeof vi.fn>;
+  let statusMock: ReturnType<typeof vi.fn>;
   let createGuestTokenUseCase: Partial<CreateGuestTokenUseCase>;
   let authController: AuthController;
 
@@ -21,8 +21,9 @@ describe(AuthController.name, () => {
 
     createGuestTokenUseCase = {
       execute: vi.fn().mockReturnValue({
-        token: 'player:Alice:mock-signature',
+        token: 'player:abc123:mock-signature',
         name: 'Alice',
+        playerId: 'abc123',
       }),
     };
 
@@ -37,16 +38,17 @@ describe(AuthController.name, () => {
     expect(createGuestTokenUseCase.execute).toHaveBeenCalledWith({ name: 'Alice' });
     expect(statusMock).toHaveBeenCalledWith(201);
     expect(jsonMock).toHaveBeenCalledWith({
-      token: 'player:Alice:mock-signature',
+      token: 'player:abc123:mock-signature',
       name: 'Alice',
-      bearer: 'Bearer player:Alice:mock-signature',
+      playerId: 'abc123',
+      bearer: 'Bearer player:abc123:mock-signature',
     });
     expect(next).not.toHaveBeenCalled();
   });
 
   it('should handle errors thrown by use case', async () => {
     const error = new Error('Database or config error');
-    (createGuestTokenUseCase.execute as any).mockImplementation(() => {
+    (createGuestTokenUseCase.execute as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw error;
     });
 

@@ -15,7 +15,7 @@ export class MatchmakingController {
 
   public async join(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const playerName = (req as any).player ?? req.body?.playerName;
+      const playerName = req.body.playerName;
       const result = await this.joinQueueUseCase.execute({ playerName });
 
       if (result.game) {
@@ -39,7 +39,7 @@ export class MatchmakingController {
 
   public async leave(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const playerName = (req as any).player ?? req.body?.playerName;
+      const playerName = req.body.playerName;
       await this.leaveQueueUseCase.execute({ playerName });
       res.status(200).json({ message: 'Left matchmaking queue' });
     }

@@ -277,9 +277,10 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            token: z.string().openapi({ example: 'player:Alice:abcdef...' }),
+            token: z.string().openapi({ example: 'player:550e8400-e29b-41d4-a716-446655440000:abcdef...' }),
             name: z.string().openapi({ example: 'Alice' }),
-            bearer: z.string().openapi({ example: 'Bearer player:Alice:abcdef...' }),
+            playerId: z.string().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+            bearer: z.string().openapi({ example: 'Bearer player:550e8400-e29b-41d4-a716-446655440000:abcdef...' }),
           }),
         },
       },

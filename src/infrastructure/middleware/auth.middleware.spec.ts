@@ -56,15 +56,16 @@ describe('authMiddleware', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it('should set player name and call next if token is a valid signed player token', () => {
+  it('should set playerId and call next if token is a valid signed player token', () => {
+    const playerId = crypto.randomUUID();
     const signature = crypto
       .createHmac('sha256', 'secret-token')
-      .update('Alice')
+      .update(playerId)
       .digest('hex');
-    req.headers!.authorization = `Bearer player:Alice:${signature}`;
+    req.headers!.authorization = `Bearer player:${playerId}:${signature}`;
     authenticate(req as Request, res as Response, next);
 
-    expect((req as any).player).toBe('Alice');
+    expect((req as any).player).toBe(playerId);
     expect(next).toHaveBeenCalled();
   });
 
