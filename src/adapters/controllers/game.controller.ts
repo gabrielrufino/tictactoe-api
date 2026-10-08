@@ -1,10 +1,10 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { CreateGameUseCase } from '../../use-cases/create-game.use-case.js';
-import type { GetGameUseCase } from '../../use-cases/get-game.use-case.js';
-import type { ListGamesUseCase } from '../../use-cases/list-games.use-case.js';
-import type { MakeMoveUseCase } from '../../use-cases/make-move.use-case.js';
-import type { GameEventSubscriber } from '../../use-cases/ports/game-event-publisher.port.js';
-import { GameMapper } from './dto/game.mapper.js';
+import type { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
+import type { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
+import type { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
+import type { MakeMoveUseCase } from '@/use-cases/make-move.use-case.js';
+import type { GameEventSubscriber } from '@/use-cases/ports/game-event-publisher.port.js';
+import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
 
 export class GameController {
   constructor(
@@ -18,7 +18,11 @@ export class GameController {
   public async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { playerX, playerO } = req.body;
-      const game = await this.createGameUseCase.execute({ playerX, playerO });
+      const game = await this.createGameUseCase.execute({
+        playerX,
+        playerO,
+        authenticatedPlayer: (req as any).player,
+      });
       res.status(201).json(GameMapper.toDTO(game));
     }
     catch (error) {
