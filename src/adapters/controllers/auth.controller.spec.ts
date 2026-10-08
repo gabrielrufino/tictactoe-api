@@ -3,7 +3,7 @@ import type { CreateGuestTokenUseCase } from '@/use-cases/create-guest-token.use
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthController } from '@/adapters/controllers/auth.controller.js';
 
-describe('authController', () => {
+describe(AuthController.name, () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;

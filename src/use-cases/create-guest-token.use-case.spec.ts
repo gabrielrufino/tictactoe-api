@@ -16,7 +16,7 @@ describe('createGuestTokenUseCase', () => {
     const useCase = new CreateGuestTokenUseCase();
     const result = useCase.execute({});
 
-    expect(result.name).toMatch(/^Guest_\d{5}$/);
+    expect(result.name).toMatch(/^Guest_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     expect(result.token).toMatch(new RegExp(`^player:${result.name}:[0-9a-f]{64}$`));
   });
 

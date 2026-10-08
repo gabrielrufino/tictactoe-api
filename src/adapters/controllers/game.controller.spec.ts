@@ -144,7 +144,8 @@ describe(GameController.name, () => {
 
   describe('listGames', () => {
     it('should return 200 with the games list', async () => {
-      req.query = { player: 'Alice', page: '1', limit: '10' };
+      req.query = { page: '1', limit: '10' };
+      req.player = 'Alice';
       const game = Game.create('game-123', 'Alice', 'Bob');
       const expectedGames = [game];
       listGamesUseCaseMock.execute.mockResolvedValue(expectedGames);

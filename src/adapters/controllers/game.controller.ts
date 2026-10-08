@@ -64,9 +64,9 @@ export class GameController {
 
   public async listGames(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { player, page, limit } = req.query;
+      const { page, limit } = req.query;
       const games = await this.listGamesUseCase.execute({
-        player: (req as any).player ?? (player ? String(player) : undefined),
+        player: (req as any).player,
         page: page ? Number(page) : undefined,
         limit: limit ? Number(limit) : undefined,
       });

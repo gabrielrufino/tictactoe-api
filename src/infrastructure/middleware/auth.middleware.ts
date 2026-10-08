@@ -4,13 +4,14 @@ import process from 'node:process';
 
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
+  const queryToken = req.query.token as string | undefined;
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ') && !queryToken) {
     res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
     return;
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = (authHeader ? authHeader.split(' ')[1] : queryToken)!;
   const expectedToken = process.env.API_TOKEN;
 
   if (!expectedToken) {

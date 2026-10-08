@@ -135,7 +135,7 @@ describe(MatchmakingController.name, () => {
     it('should include player names when includePlayers is true', async () => {
       queueMock.getWaitingPlayers.mockReturnValue(['Alice', 'Bob']);
       queueMock.getPlayerCount.mockReturnValue(2);
-      req.query = { includePlayers: true };
+      req.query = { includePlayers: 'true' };
 
       await controller.getStatus(req as Request, res as Response, next);
 

@@ -41,7 +41,14 @@ export async function createServer(): Promise<Express> {
   }
 
   const app = express();
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'script-src': ['\'self\'', 'https://unpkg.com'],
+      },
+    },
+  }));
   app.use(express.json());
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

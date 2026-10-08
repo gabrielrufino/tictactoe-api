@@ -456,7 +456,7 @@ function renderGamesList(games) {
 
 function connectGameEvents(gameId) {
   if (eventSource) eventSource.close();
-  const ev = new EventSource(`${API_BASE}/games/${gameId}/events`);
+  const ev = new EventSource(`${API_BASE}/games/${gameId}/events?token=${token}`);
   eventSource = ev;
   ev.onopen = () => {
     document.getElementById('connDot').className = 'connection-dot online';
@@ -477,7 +477,7 @@ function connectGameEvents(gameId) {
 
 function connectMatchmakingEvents() {
   if (matchmakingSource) matchmakingSource.close();
-  const ev = new EventSource(`${API_BASE}/matchmaking/events`);
+  const ev = new EventSource(`${API_BASE}/matchmaking/events?token=${token}`);
   matchmakingSource = ev;
   ev.onopen = () => addLog('Conectado ao stream de matchmaking', 'success');
   ev.onmessage = (msg) => {

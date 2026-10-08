@@ -40,7 +40,7 @@ describe('e2E: Auth & Guest Token API', () => {
       .expect(201);
 
     expect(response.body).toHaveProperty('token');
-    expect(response.body.name).toMatch(/^Guest_\d{5}$/);
+    expect(response.body.name).toMatch(/^Guest_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     expect(response.body.token).toMatch(new RegExp(`^player:${response.body.name}:[0-9a-f]{64}$`));
   });
 });
