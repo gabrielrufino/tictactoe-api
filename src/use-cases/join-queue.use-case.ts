@@ -1,8 +1,8 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { IdGenerator } from './ports/id-generator.port.js';
-import type { MatchmakingEventPublisher, MatchmakingQueue } from './ports/matchmaking-event.port.js';
-import { Game } from '../domain/entities/game.entity.js';
-import { ValidationError } from '../domain/errors/game.error.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import type { IdGenerator } from '@/use-cases/ports/id-generator.port.js';
+import type { MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { ValidationError } from '@/domain/errors/game.error.js';
 
 export interface JoinQueueInput {
   readonly playerName: string

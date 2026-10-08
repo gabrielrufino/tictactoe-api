@@ -1,7 +1,7 @@
-import type { Game, PlayerSymbol } from '../domain/entities/game.entity.js';
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { GameEventPublisher } from './ports/game-event-publisher.port.js';
-import { GameNotFoundError, ValidationError } from '../domain/errors/game.error.js';
+import type { Game, PlayerSymbol } from '@/domain/entities/game.entity.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import type { GameEventPublisher } from '@/use-cases/ports/game-event-publisher.port.js';
+import { GameNotFoundError, ValidationError } from '@/domain/errors/game.error.js';
 
 export interface MakeMoveInput {
   readonly gameId: string

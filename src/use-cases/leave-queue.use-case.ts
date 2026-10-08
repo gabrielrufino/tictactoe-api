@@ -1,5 +1,5 @@
-import type { MatchmakingEventPublisher, MatchmakingQueue } from './ports/matchmaking-event.port.js';
-import { ValidationError } from '../domain/errors/game.error.js';
+import type { MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
+import { ValidationError } from '@/domain/errors/game.error.js';
 
 export interface LeaveQueueInput {
   readonly playerName: string

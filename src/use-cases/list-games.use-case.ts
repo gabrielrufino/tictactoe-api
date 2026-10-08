@@ -1,5 +1,5 @@
-import type { Game } from '../domain/entities/game.entity.js';
-import type { GameRepository } from '../domain/repositories/game.repository.js';
+import type { Game } from '@/domain/entities/game.entity.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
 
 export interface ListGamesRequestDTO {
   player?: string
