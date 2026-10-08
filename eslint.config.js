@@ -7,4 +7,12 @@ export default antfu({
     'style/semi': ['error', 'always'],
     'style/quotes': ['error', 'single'],
   },
+  settings: {
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+        project: './tsconfig.json',
+      },
+    },
+  },
 });

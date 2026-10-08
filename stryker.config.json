@@ -14,5 +14,8 @@
     "!src/index.ts",
     "!src/infrastructure/database/mongodb.ts"
   ],
+  "testFiles": [
+    "src/**/*.spec.ts"
+  ],
   "concurrency": 2
 }
