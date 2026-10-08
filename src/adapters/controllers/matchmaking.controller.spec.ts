@@ -1,12 +1,12 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { Mock, Mocked } from 'vitest';
-import type { JoinQueueUseCase } from '../../use-cases/join-queue.use-case.js';
-import type { LeaveQueueUseCase } from '../../use-cases/leave-queue.use-case.js';
-import type { MatchmakingEventPublisher, MatchmakingQueue } from '../../use-cases/ports/matchmaking-event.port.js';
+import type { JoinQueueUseCase } from '@/use-cases/join-queue.use-case.js';
+import type { LeaveQueueUseCase } from '@/use-cases/leave-queue.use-case.js';
+import type { MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Game } from '../../domain/entities/game.entity.js';
-import { GameMapper } from './dto/game.mapper.js';
-import { MatchmakingController } from './matchmaking.controller.js';
+import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
+import { MatchmakingController } from '@/adapters/controllers/matchmaking.controller.js';
+import { Game } from '@/domain/entities/game.entity.js';
 
 describe(MatchmakingController.name, () => {
   let joinQueueUseCaseMock: Mocked<JoinQueueUseCase>;
@@ -119,9 +119,23 @@ describe(MatchmakingController.name, () => {
   });
 
   describe('getStatus', () => {
-    it('should return queue status', async () => {
+    it('should return queue status without player names by default', async () => {
       queueMock.getWaitingPlayers.mockReturnValue(['Alice', 'Bob']);
       queueMock.getPlayerCount.mockReturnValue(2);
+
+      await controller.getStatus(req as Request, res as Response, next);
+
+      expect(statusMock).toHaveBeenCalledWith(200);
+      expect(jsonMock).toHaveBeenCalledWith({
+        playerCount: 2,
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should include player names when includePlayers is true', async () => {
+      queueMock.getWaitingPlayers.mockReturnValue(['Alice', 'Bob']);
+      queueMock.getPlayerCount.mockReturnValue(2);
+      req.query = { includePlayers: true };
 
       await controller.getStatus(req as Request, res as Response, next);
 

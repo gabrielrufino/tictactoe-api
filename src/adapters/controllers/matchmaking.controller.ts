@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 
-import type { JoinQueueUseCase } from '../../use-cases/join-queue.use-case.js';
-import type { LeaveQueueUseCase } from '../../use-cases/leave-queue.use-case.js';
-import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from '../../use-cases/ports/matchmaking-event.port.js';
-import { GameMapper } from './dto/game.mapper.js';
+import type { JoinQueueUseCase } from '@/use-cases/join-queue.use-case.js';
+import type { LeaveQueueUseCase } from '@/use-cases/leave-queue.use-case.js';
+import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
+import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
 
 export class MatchmakingController {
   constructor(
@@ -50,11 +50,13 @@ export class MatchmakingController {
 
   public async getStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const includePlayers = (req as any).query?.includePlayers ?? false;
       const players = this.queue.getWaitingPlayers();
-      res.status(200).json({
-        waitingPlayers: players,
-        playerCount: players.length,
-      });
+      const response: { waitingPlayers?: string[], playerCount: number } = { playerCount: players.length };
+      if (includePlayers) {
+        response.waitingPlayers = players;
+      }
+      res.status(200).json(response);
     }
     catch (error) {
       next(error);
