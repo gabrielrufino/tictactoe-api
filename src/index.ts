@@ -25,6 +25,7 @@ import { openapiSpec } from '@/infrastructure/docs/openapi.js';
 import { logger } from '@/infrastructure/logger.js';
 import { MatchmakingQueueImpl } from '@/infrastructure/matchmaking-queue.js';
 import { authenticate } from '@/infrastructure/middleware/auth.middleware.js';
+import { cors } from '@/infrastructure/middleware/cors.middleware.js';
 import { errorHandler } from '@/infrastructure/middleware/error.middleware.js';
 import { validate } from '@/infrastructure/middleware/validation.middleware.js';
 import { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
@@ -50,16 +51,7 @@ export async function createServer(): Promise<Express> {
     },
   }));
   app.use(express.json());
-  app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-      res.sendStatus(200);
-      return;
-    }
-    next();
-  });
+  app.use(cors);
   app.use(pinoHttp({
     logger,
     redact: {
