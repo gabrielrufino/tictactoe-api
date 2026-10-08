@@ -1,32 +1,39 @@
 import type { Express } from 'express';
-import type { GameDocument } from './adapters/repositories/mongo-game.repository.js';
-import type { GameRepository } from './domain/repositories/game.repository.js';
+import type { GameDocument } from '@/adapters/repositories/mongo-game.repository.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
 import process from 'node:process';
 import express from 'express';
+import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
-import { AuthController } from './adapters/controllers/auth.controller.js';
-import { guestTokenSchema } from './adapters/controllers/auth.validator.js';
-import { GameController } from './adapters/controllers/game.controller.js';
+import { AuthController } from '@/adapters/controllers/auth.controller.js';
+import { guestTokenSchema } from '@/adapters/controllers/auth.validator.js';
+import { GameController } from '@/adapters/controllers/game.controller.js';
 import {
   createGameSchema,
   getGameSchema,
   listGamesSchema,
   makeMoveSchema,
-} from './adapters/controllers/game.validator.js';
-import { InMemoryGameEventPublisher } from './adapters/events/in-memory-game-event-publisher.adapter.js';
-import { MongoIdGenerator } from './adapters/id/mongo-id-generator.adapter.js';
-import { MongoGameRepository } from './adapters/repositories/mongo-game.repository.js';
-import { connectToDatabase } from './infrastructure/database/mongodb.js';
-import { openapiSpec } from './infrastructure/docs/openapi.js';
-import { logger } from './infrastructure/logger.js';
-import { authenticate } from './infrastructure/middleware/auth.middleware.js';
-import { errorHandler } from './infrastructure/middleware/error.middleware.js';
-import { validate } from './infrastructure/middleware/validation.middleware.js';
-import { CreateGameUseCase } from './use-cases/create-game.use-case.js';
-import { CreateGuestTokenUseCase } from './use-cases/create-guest-token.use-case.js';
-import { GetGameUseCase } from './use-cases/get-game.use-case.js';
-import { ListGamesUseCase } from './use-cases/list-games.use-case.js';
-import { MakeMoveUseCase } from './use-cases/make-move.use-case.js';
+} from '@/adapters/controllers/game.validator.js';
+import { MatchmakingController } from '@/adapters/controllers/matchmaking.controller.js';
+import { getMatchmakingStatusSchema, joinQueueSchema, leaveQueueSchema } from '@/adapters/controllers/matchmaking.validator.js';
+import { InMemoryGameEventPublisher } from '@/adapters/events/in-memory-game-event-publisher.adapter.js';
+import { InMemoryMatchmakingEventPublisher } from '@/adapters/events/in-memory-matchmaking-event-publisher.adapter.js';
+import { MongoIdGenerator } from '@/adapters/id/mongo-id-generator.adapter.js';
+import { MongoGameRepository } from '@/adapters/repositories/mongo-game.repository.js';
+import { connectToDatabase } from '@/infrastructure/database/mongodb.js';
+import { openapiSpec } from '@/infrastructure/docs/openapi.js';
+import { logger } from '@/infrastructure/logger.js';
+import { MatchmakingQueueImpl } from '@/infrastructure/matchmaking-queue.js';
+import { authenticate } from '@/infrastructure/middleware/auth.middleware.js';
+import { errorHandler } from '@/infrastructure/middleware/error.middleware.js';
+import { validate } from '@/infrastructure/middleware/validation.middleware.js';
+import { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
+import { CreateGuestTokenUseCase } from '@/use-cases/create-guest-token.use-case.js';
+import { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
+import { JoinQueueUseCase } from '@/use-cases/join-queue.use-case.js';
+import { LeaveQueueUseCase } from '@/use-cases/leave-queue.use-case.js';
+import { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
+import { MakeMoveUseCase } from '@/use-cases/make-move.use-case.js';
 
 export async function createServer(): Promise<Express> {
   if (!process.env.API_TOKEN) {
@@ -34,7 +41,18 @@ export async function createServer(): Promise<Express> {
   }
 
   const app = express();
+  app.use(helmet());
   app.use(express.json());
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
   app.use(pinoHttp({
     logger,
     redact: {
@@ -70,6 +88,10 @@ export async function createServer(): Promise<Express> {
   const makeMoveUseCase = new MakeMoveUseCase(gameRepository, gameEventPublisher);
   const listGamesUseCase = new ListGamesUseCase(gameRepository);
   const createGuestTokenUseCase = new CreateGuestTokenUseCase();
+  const matchmakingQueue = new MatchmakingQueueImpl();
+  const matchmakingEventPublisher = new InMemoryMatchmakingEventPublisher();
+  const joinQueueUseCase = new JoinQueueUseCase(gameRepository, idGenerator, matchmakingQueue, matchmakingEventPublisher);
+  const leaveQueueUseCase = new LeaveQueueUseCase(matchmakingQueue, matchmakingEventPublisher);
 
   // Setup Controller
   const gameController = new GameController(
@@ -80,6 +102,12 @@ export async function createServer(): Promise<Express> {
     gameEventPublisher,
   );
   const authController = new AuthController(createGuestTokenUseCase);
+  const matchmakingController = new MatchmakingController(
+    joinQueueUseCase,
+    leaveQueueUseCase,
+    matchmakingQueue,
+    matchmakingEventPublisher,
+  );
 
   // Routes
   app.get('/health', async (req, res) => {
@@ -139,6 +167,11 @@ export async function createServer(): Promise<Express> {
 </html>
     `);
   });
+
+  app.post('/matchmaking/join', validate(joinQueueSchema), (req, res, next) => matchmakingController.join(req, res, next));
+  app.delete('/matchmaking/leave', validate(leaveQueueSchema), (req, res, next) => matchmakingController.leave(req, res, next));
+  app.get('/matchmaking/status', validate(getMatchmakingStatusSchema), (req, res, next) => matchmakingController.getStatus(req, res, next));
+  app.get('/matchmaking/events', (req, res, next) => matchmakingController.getEvents(req, res, next));
 
   app.post('/auth/guest', validate(guestTokenSchema), (req, res, next) => authController.createGuestToken(req, res, next));
 
