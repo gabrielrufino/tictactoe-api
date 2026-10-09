@@ -1,13 +1,20 @@
 import request from 'supertest';
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { createServer } from '../../src/index.js';
-import { disconnectFromDatabase } from '../../src/infrastructure/database/mongodb.js';
+import { createServer } from '@/index.js';
+import { disconnectFromDatabase } from '@/infrastructure/database/mongodb.js';
 
 process.env.API_TOKEN = 'secret-token';
 
-vi.mock('../../src/infrastructure/database/mongodb.js', () => {
+vi.mock('@/infrastructure/database/mongodb.js', () => {
+  const mockCollection = {
+    createIndex: vi.fn(),
+    updateOne: vi.fn(),
+    findOne: vi.fn(),
+    find: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+  };
+
   const mockDb = {
-    collection: vi.fn(),
+    collection: vi.fn().mockReturnValue(mockCollection),
     command: vi.fn().mockResolvedValue({ ok: 1 }),
   };
 
@@ -43,5 +50,15 @@ describe('health API (e2e)', () => {
     expect(response.body).toHaveProperty('openapi', '3.0.3');
     expect(response.body).toHaveProperty('info');
     expect(response.body.info).toHaveProperty('title', 'Tic-Tac-Toe API');
+  });
+
+  it('should return 200 and Swagger UI HTML on /docs', async () => {
+    const app = await createServer();
+    const response = await request(app)
+      .get('/docs')
+      .expect(200);
+
+    expect(response.text).toContain('SwaggerUIBundle');
+    expect(response.text).toContain('/openapi.json');
   });
 });

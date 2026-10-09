@@ -1,10 +1,10 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { createServer } from './index.js';
-import { disconnectFromDatabase } from './infrastructure/database/mongodb.js';
+import { createServer } from '@/index.js';
+import { disconnectFromDatabase } from '@/infrastructure/database/mongodb.js';
 
 process.env.API_TOKEN = 'secret-token';
 
-vi.mock('./infrastructure/database/mongodb.js', () => {
+vi.mock('@/infrastructure/database/mongodb.js', () => {
   const mockCursor = {
     skip: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
@@ -12,6 +12,7 @@ vi.mock('./infrastructure/database/mongodb.js', () => {
   };
 
   const mockCollection = {
+    createIndex: vi.fn(),
     updateOne: vi.fn(),
     findOne: vi.fn(),
     find: vi.fn(() => mockCursor),

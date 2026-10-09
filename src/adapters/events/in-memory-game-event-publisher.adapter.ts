@@ -1,5 +1,5 @@
-import type { Game } from '../../domain/entities/game.entity.js';
-import type { GameEventPublisher, GameEventSubscriber } from '../../use-cases/ports/game-event-publisher.port.js';
+import type { Game } from '@/domain/entities/game.entity.js';
+import type { GameEventPublisher, GameEventSubscriber } from '@/use-cases/ports/game-event-publisher.port.js';
 import { EventEmitter } from 'node:events';
 
 export class InMemoryGameEventPublisher implements GameEventPublisher, GameEventSubscriber {

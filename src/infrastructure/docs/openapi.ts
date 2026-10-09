@@ -1,11 +1,12 @@
 import { OpenApiGeneratorV3, OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { guestTokenSchema } from '@/adapters/controllers/auth.validator.js';
 import {
   createGameSchema,
   getGameSchema,
   listGamesSchema,
   makeMoveSchema,
-} from '../../adapters/controllers/game.validator.js';
+} from '@/adapters/controllers/game.validator.js';
 
 const registry = new OpenAPIRegistry();
 
@@ -246,6 +247,46 @@ registry.registerPath({
     },
     404: {
       description: 'Game not found',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+// /auth/guest (POST)
+registry.registerPath({
+  method: 'post',
+  path: '/auth/guest',
+  summary: 'Create a signed guest token for player authentication',
+  request: {
+    body: {
+      required: false,
+      content: {
+        'application/json': {
+          schema: guestTokenSchema.shape.body,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Guest token created successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            token: z.string().openapi({ example: 'player:550e8400-e29b-41d4-a716-446655440000:abcdef...' }),
+            name: z.string().openapi({ example: 'Alice' }),
+            playerId: z.string().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+            bearer: z.string().openapi({ example: 'Bearer player:550e8400-e29b-41d4-a716-446655440000:abcdef...' }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad Request',
       content: {
         'application/json': {
           schema: ErrorResponseSchema,

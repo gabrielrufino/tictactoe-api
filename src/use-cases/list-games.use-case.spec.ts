@@ -1,7 +1,7 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
 import { describe, expect, it, vi } from 'vitest';
-import { Game } from '../domain/entities/game.entity.js';
-import { ListGamesUseCase } from './list-games.use-case.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
 
 describe(ListGamesUseCase.name, () => {
   it('should list games with default page and limit', async () => {

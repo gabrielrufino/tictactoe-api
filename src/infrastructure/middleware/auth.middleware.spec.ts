@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import crypto from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { authenticate } from './auth.middleware.js';
+import { authenticate } from '@/infrastructure/middleware/auth.middleware.js';
 
 process.env.API_TOKEN = 'secret-token';
 
@@ -17,6 +17,7 @@ describe('authMiddleware', () => {
     statusMock = vi.fn().mockReturnValue({ json: jsonMock });
     req = {
       headers: {},
+      query: {},
     };
     res = {
       status: statusMock,
@@ -55,15 +56,16 @@ describe('authMiddleware', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it('should set player name and call next if token is a valid signed player token', () => {
+  it('should set playerId and call next if token is a valid signed player token', () => {
+    const playerId = crypto.randomUUID();
     const signature = crypto
       .createHmac('sha256', 'secret-token')
-      .update('Alice')
+      .update(playerId)
       .digest('hex');
-    req.headers!.authorization = `Bearer player:Alice:${signature}`;
+    req.headers!.authorization = `Bearer player:${playerId}:${signature}`;
     authenticate(req as Request, res as Response, next);
 
-    expect((req as any).player).toBe('Alice');
+    expect((req as any).player).toBe(playerId);
     expect(next).toHaveBeenCalled();
   });
 
@@ -92,5 +94,17 @@ describe('authMiddleware', () => {
     expect(statusMock).toHaveBeenCalledWith(401);
     expect(jsonMock).toHaveBeenCalledWith({ error: 'Unauthorized: Invalid player token format' });
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it('should return 500 if API_TOKEN is not configured', () => {
+    const originalToken = process.env.API_TOKEN;
+    delete process.env.API_TOKEN;
+    req.headers!.authorization = 'Bearer secret-token';
+    authenticate(req as Request, res as Response, next);
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(jsonMock).toHaveBeenCalledWith({ error: 'Internal Server Error: API_TOKEN is not configured' });
+    expect(next).not.toHaveBeenCalled();
+    process.env.API_TOKEN = originalToken;
   });
 });

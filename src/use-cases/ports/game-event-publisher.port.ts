@@ -1,4 +1,4 @@
-import type { Game } from '../../domain/entities/game.entity.js';
+import type { Game } from '@/domain/entities/game.entity.js';
 
 export interface GameEventPublisher {
   publish: (gameId: string, game: Game) => void

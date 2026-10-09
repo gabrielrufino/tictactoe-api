@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic-Tac-Toe Matchmaking Demo</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <h1>⬡ Tic-Tac-Toe Matchmaking</h1>
+
+  <div class="card">
+    <h2>⚙ Configuração</h2>
+    <div class="token-bar">
+      <span>Token:</span>
+      <input type="text" id="apiToken" value="secret-token" placeholder="Bearer token">
+      <button class="btn-secondary" onclick="saveToken()">Salvar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔍 Matchmaking</h2>
+    <div class="form-row">
+      <input type="text" id="playerName" placeholder="Seu nome" value="Alice">
+    </div>
+    <div class="flex-row">
+      <button class="btn-primary" id="joinBtn" onclick="joinQueue()">Entrar na Fila</button>
+      <button class="btn-danger hidden" id="leaveBtn" onclick="leaveQueue()">Sair da Fila</button>
+    </div>
+    <div id="queueArea">
+      <div class="empty-state">Aguardando jogadores na fila...</div>
+    </div>
+  </div>
+
+  <div id="matchBanner" class="match-banner hidden">
+    <h3>🎉 Match Encontrado!</h3>
+    <p id="matchInfo"></p>
+  </div>
+
+  <div class="card hidden" id="gameCard">
+    <div class="status-bar">
+      <div class="flex-center">
+        <div class="turn-indicator" id="turnIndicator">Vez: X</div>
+        <span class="game-status playing" id="gameStatus">PLAYING</span>
+      </div>
+      <button class="btn-danger" onclick="leaveGame()">Sair</button>
+    </div>
+    <div class="players" id="playersInfo"></div>
+    <div class="board" id="board"></div>
+    <div class="info-row">
+      <span>ID: <code id="gameIdDisplay">-</code></span>
+      <span id="winnerInfo"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Jogos</h2>
+    <ul class="games-list" id="gamesList">
+      <li class="empty-state">Nenhum jogo criado ainda</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span class="connection-dot offline" id="connDot"></span>
+      📡 Eventos
+    </h2>
+    <div class="log" id="eventLog">
+      <div class="log-entry">Aguardando conexão...</div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

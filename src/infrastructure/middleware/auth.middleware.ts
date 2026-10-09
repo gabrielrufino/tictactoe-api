@@ -2,15 +2,22 @@ import type { NextFunction, Request, Response } from 'express';
 import crypto from 'node:crypto';
 import process from 'node:process';
 
+export interface AuthenticatedRequest extends Request {
+  player?: string
+}
+
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
+  const queryToken = req.query.token as string | undefined;
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ') && !queryToken) {
     res.status(401).json({ error: 'Unauthorized: Missing or invalid token format' });
     return;
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : queryToken!;
   const expectedToken = process.env.API_TOKEN;
 
   if (!expectedToken) {
@@ -20,17 +27,17 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
 
   if (token.startsWith('player:')) {
     const parts = token.split(':');
-    const playerName = parts[1];
+    const playerId = parts[1];
     const signature = parts[2];
 
-    if (!playerName || !signature) {
+    if (!playerId || !signature) {
       res.status(401).json({ error: 'Unauthorized: Invalid player token format' });
       return;
     }
 
     const expectedSignature = crypto
       .createHmac('sha256', expectedToken)
-      .update(playerName)
+      .update(playerId)
       .digest('hex');
 
     if (signature !== expectedSignature) {
@@ -38,7 +45,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       return;
     }
 
-    (req as any).player = playerName;
+    (req as AuthenticatedRequest).player = playerId;
   }
   else if (token !== expectedToken) {
     res.status(401).json({ error: 'Unauthorized: Invalid token' });

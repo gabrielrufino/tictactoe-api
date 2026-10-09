@@ -1,6 +1,6 @@
-import type { Game } from '../domain/entities/game.entity.js';
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import { GameNotFoundError, ValidationError } from '../domain/errors/game.error.js';
+import type { Game } from '@/domain/entities/game.entity.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import { GameNotFoundError, ValidationError } from '@/domain/errors/game.error.js';
 
 export interface GetGameInput {
   readonly gameId: string

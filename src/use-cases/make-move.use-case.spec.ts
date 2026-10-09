@@ -1,8 +1,8 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { GameEventPublisher } from './ports/game-event-publisher.port.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import type { GameEventPublisher } from '@/use-cases/ports/game-event-publisher.port.js';
 import { describe, expect, it, vi } from 'vitest';
-import { Game } from '../domain/entities/game.entity.js';
-import { MakeMoveUseCase } from './make-move.use-case.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { MakeMoveUseCase } from '@/use-cases/make-move.use-case.js';
 
 describe(MakeMoveUseCase.name, () => {
   it('should successfully make a move and save the game', async () => {

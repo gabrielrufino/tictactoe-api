@@ -1,15 +1,17 @@
+import crypto from 'node:crypto';
 import http from 'node:http';
 import request from 'supertest';
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { createServer } from '../../src/index.js';
-import { disconnectFromDatabase } from '../../src/infrastructure/database/mongodb.js';
+import { createServer } from '@/index.js';
+import { disconnectFromDatabase } from '@/infrastructure/database/mongodb.js';
 
 process.env.API_TOKEN = 'secret-token';
 
 // Mock DB connection and collection at the top-level
-vi.mock('../../src/infrastructure/database/mongodb.js', () => {
+vi.mock('@/infrastructure/database/mongodb.js', () => {
   const mockGames: any[] = [];
   const mockCollection = {
+    createIndex: vi.fn(),
     insertOne: vi.fn().mockImplementation(async (doc) => {
       const existing = mockGames.find(g => g._id === doc._id);
       if (existing) {
@@ -234,7 +236,7 @@ describe('e2E: Games API', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    it('should filter games by player query parameter', async () => {
+    it('should return all games when using master token', async () => {
       const app = await createServer();
       const token = 'Bearer secret-token';
 
@@ -252,50 +254,45 @@ describe('e2E: Games API', () => {
         .send({ playerX: 'Charlie', playerO: 'David' })
         .expect(201);
 
-      // List games filtering by Alice
-      const responseAlice = await request(app)
-        .get('/games?player=Alice')
+      // List all games (master token returns all games)
+      const responseAll = await request(app)
+        .get('/games')
         .set('Authorization', token)
         .expect(200);
 
-      expect(responseAlice.body.length).toBeGreaterThanOrEqual(1);
-      expect(responseAlice.body.every((g: any) => g.players.X === 'Alice' || g.players.O === 'Alice')).toBe(true);
-
-      // List games filtering by NonExistent
-      const responseNone = await request(app)
-        .get('/games?player=NonExistent')
-        .set('Authorization', token)
-        .expect(200);
-
-      expect(responseNone.body).toEqual([]);
+      expect(responseAll.body.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should filter and paginate games list in E2E', async () => {
       const app = await createServer();
-      const token = 'Bearer secret-token';
+      const p1Signature = crypto
+        .createHmac('sha256', 'secret-token')
+        .update('P1')
+        .digest('hex');
+      const token = `Bearer player:P1:${p1Signature}`;
 
       // Create games with pagination-specific players
       await request(app)
         .post('/games')
-        .set('Authorization', token)
+        .set('Authorization', 'Bearer secret-token')
         .send({ playerX: 'P1', playerO: 'P2' })
         .expect(201);
 
       await request(app)
         .post('/games')
-        .set('Authorization', token)
+        .set('Authorization', 'Bearer secret-token')
         .send({ playerX: 'P1', playerO: 'P3' })
         .expect(201);
 
       await request(app)
         .post('/games')
-        .set('Authorization', token)
+        .set('Authorization', 'Bearer secret-token')
         .send({ playerX: 'P1', playerO: 'P4' })
         .expect(201);
 
       // Get page 1 with limit 2 for player P1
       const resPage1 = await request(app)
-        .get('/games?player=P1&page=1&limit=2')
+        .get('/games?page=1&limit=2')
         .set('Authorization', token)
         .expect(200);
 
@@ -305,7 +302,7 @@ describe('e2E: Games API', () => {
 
       // Get page 2 with limit 2 for player P1
       const resPage2 = await request(app)
-        .get('/games?player=P1&page=2&limit=2')
+        .get('/games?page=2&limit=2')
         .set('Authorization', token)
         .expect(200);
 

@@ -1,4 +1,4 @@
-import { InvalidMoveError } from '../errors/game.error.js';
+import { InvalidMoveError } from '@/domain/errors/game.error.js';
 
 export type PlayerSymbol = 'X' | 'O';
 export type BoardCell = PlayerSymbol | null;

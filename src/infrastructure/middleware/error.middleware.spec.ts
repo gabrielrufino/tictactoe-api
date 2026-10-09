@@ -1,10 +1,10 @@
 import type { NextFunction, Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DomainError, GameNotFoundError } from '../../domain/errors/game.error.js';
-import { logger } from '../logger.js';
-import { errorHandler } from './error.middleware.js';
+import { DomainError, GameNotFoundError } from '@/domain/errors/game.error.js';
+import { logger } from '@/infrastructure/logger.js';
+import { errorHandler } from '@/infrastructure/middleware/error.middleware.js';
 
-vi.mock('../logger.js', () => ({
+vi.mock('@/infrastructure/logger.js', () => ({
   logger: {
     error: vi.fn(),
   },

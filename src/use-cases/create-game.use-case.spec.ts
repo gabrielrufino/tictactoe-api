@@ -1,8 +1,8 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { IdGenerator } from './ports/id-generator.port.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import type { IdGenerator } from '@/use-cases/ports/id-generator.port.js';
 import { describe, expect, it, vi } from 'vitest';
-import { Game } from '../domain/entities/game.entity.js';
-import { CreateGameUseCase } from './create-game.use-case.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
 
 describe(CreateGameUseCase.name, () => {
   it('should create a game and save it in repository', async () => {
@@ -85,5 +85,39 @@ describe(CreateGameUseCase.name, () => {
     await expect(useCase.execute({ playerX: 'Alice', playerO: 'Alice' })).rejects.toThrow(
       'playerX and playerO must be different players',
     );
+  });
+
+  it('should successfully create a game when authenticatedPlayer matches playerX', async () => {
+    const mockSave = vi.fn();
+    const repository: GameRepository = {
+      save: mockSave,
+      findById: vi.fn(),
+      findAll: vi.fn(),
+    };
+    const idGenerator: IdGenerator = {
+      generate: () => 'game-123',
+    };
+
+    const useCase = new CreateGameUseCase(repository, idGenerator);
+    const result = await useCase.execute({ playerX: 'Alice', playerO: 'Bob', authenticatedPlayer: 'Alice' });
+
+    expect(result.id).toBe('game-123');
+    expect(mockSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('should throw an error if authenticatedPlayer does not match playerX or playerO', async () => {
+    const repository: GameRepository = {
+      save: vi.fn(),
+      findById: vi.fn(),
+      findAll: vi.fn(),
+    };
+    const idGenerator: IdGenerator = {
+      generate: () => 'game-123',
+    };
+
+    const useCase = new CreateGameUseCase(repository, idGenerator);
+    await expect(
+      useCase.execute({ playerX: 'Alice', playerO: 'Bob', authenticatedPlayer: 'Charlie' }),
+    ).rejects.toThrow('Unauthorized: Authenticated player Charlie must be one of playerX or playerO');
   });
 });

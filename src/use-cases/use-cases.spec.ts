@@ -1,11 +1,11 @@
-import type { GameRepository } from '../domain/repositories/game.repository.js';
-import type { IdGenerator } from './ports/id-generator.port.js';
+import type { GameRepository } from '@/domain/repositories/game.repository.js';
+import type { IdGenerator } from '@/use-cases/ports/id-generator.port.js';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Game } from '../domain/entities/game.entity.js';
-import { CreateGameUseCase } from './create-game.use-case.js';
-import { GetGameUseCase } from './get-game.use-case.js';
-import { ListGamesUseCase } from './list-games.use-case.js';
-import { MakeMoveUseCase } from './make-move.use-case.js';
+import { Game } from '@/domain/entities/game.entity.js';
+import { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
+import { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
+import { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
+import { MakeMoveUseCase } from '@/use-cases/make-move.use-case.js';
 
 // In-Memory Implementations for testing
 class InMemoryGameRepository implements GameRepository {

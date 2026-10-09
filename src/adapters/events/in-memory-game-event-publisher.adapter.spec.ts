@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { InMemoryGameEventPublisher } from './in-memory-game-event-publisher.adapter.js';
+import { InMemoryGameEventPublisher } from '@/adapters/events/in-memory-game-event-publisher.adapter.js';
 
 describe('inMemoryGameEventPublisher', () => {
   it('should allow subscribing and publishing to a specific game', () => {
