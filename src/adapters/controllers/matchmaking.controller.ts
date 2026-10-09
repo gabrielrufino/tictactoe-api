@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 
+import type { GetStatusQuery, JoinQueueBody, LeaveQueueBody } from '@/adapters/controllers/matchmaking.validator.js';
 import type { JoinQueueUseCase } from '@/use-cases/join-queue.use-case.js';
 import type { LeaveQueueUseCase } from '@/use-cases/leave-queue.use-case.js';
 import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
-import type { GetStatusQuery, JoinQueueBody, LeaveQueueBody } from '@/adapters/controllers/matchmaking.validator.js';
 import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
 
 export class MatchmakingController {

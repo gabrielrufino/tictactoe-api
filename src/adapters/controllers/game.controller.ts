@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { CreateGameBody, GetGameParams, ListGamesQuery, MakeMoveBody } from '@/adapters/controllers/game.validator.js';
+import type { CreateGameBody, GetGameParams, MakeMoveBody } from '@/adapters/controllers/game.validator.js';
 import type { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
 import type { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
 import type { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
@@ -9,7 +9,7 @@ import type { GameEventSubscriber } from '@/use-cases/ports/game-event-publisher
 import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
 
 interface AuthenticatedRequest extends Request {
-  player?: string;
+  player?: string
 }
 
 export class GameController {
