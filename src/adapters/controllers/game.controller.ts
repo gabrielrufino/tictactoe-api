@@ -1,10 +1,16 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { CreateGameBody, GetGameParams, ListGamesQuery, MakeMoveBody } from '@/adapters/controllers/game.validator.js';
 import type { CreateGameUseCase } from '@/use-cases/create-game.use-case.js';
 import type { GetGameUseCase } from '@/use-cases/get-game.use-case.js';
 import type { ListGamesUseCase } from '@/use-cases/list-games.use-case.js';
 import type { MakeMoveUseCase } from '@/use-cases/make-move.use-case.js';
 import type { GameEventSubscriber } from '@/use-cases/ports/game-event-publisher.port.js';
+
 import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
+
+interface AuthenticatedRequest extends Request {
+  player?: string;
+}
 
 export class GameController {
   constructor(
@@ -15,13 +21,13 @@ export class GameController {
     private readonly gameEventPublisher: GameEventSubscriber,
   ) {}
 
-  public async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { playerX, playerO } = req.body;
+      const body = req.body as CreateGameBody;
       const game = await this.createGameUseCase.execute({
-        playerX,
-        playerO,
-        authenticatedPlayer: (req as any).player,
+        playerX: body.playerX,
+        playerO: body.playerO,
+        authenticatedPlayer: req.player,
       });
       res.status(201).json(GameMapper.toDTO(game));
     }
@@ -30,16 +36,16 @@ export class GameController {
     }
   }
 
-  public async makeMove(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async makeMove(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
-      const { playerSymbol, row, col } = req.body;
+      const params = req.params as GetGameParams;
+      const body = req.body as MakeMoveBody;
       const game = await this.makeMoveUseCase.execute({
-        gameId: String(id),
-        playerSymbol,
-        row: Number(row),
-        col: Number(col),
-        authenticatedPlayer: (req as any).player,
+        gameId: params.id,
+        playerSymbol: body.playerSymbol,
+        row: Number(body.row),
+        col: Number(body.col),
+        authenticatedPlayer: req.player,
       });
       res.status(200).json(GameMapper.toDTO(game));
     }
@@ -48,12 +54,12 @@ export class GameController {
     }
   }
 
-  public async getGame(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async getGame(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const params = req.params as GetGameParams;
       const game = await this.getGameUseCase.execute({
-        gameId: String(id),
-        authenticatedPlayer: (req as any).player,
+        gameId: params.id,
+        authenticatedPlayer: req.player,
       });
       res.status(200).json(GameMapper.toDTO(game));
     }
@@ -62,13 +68,12 @@ export class GameController {
     }
   }
 
-  public async listGames(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async listGames(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { page, limit } = req.query;
       const games = await this.listGamesUseCase.execute({
-        player: (req as any).player,
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
+        player: req.player,
+        page: typeof req.query.page === 'string' || typeof req.query.page === 'number' ? Number(req.query.page) : undefined,
+        limit: typeof req.query.limit === 'string' || typeof req.query.limit === 'number' ? Number(req.query.limit) : undefined,
       });
       res.status(200).json(games.map(GameMapper.toDTO));
     }
@@ -77,10 +82,10 @@ export class GameController {
     }
   }
 
-  public async getEvents(req: Request, res: Response, next: NextFunction): Promise<void> {
+  public async getEvents(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
-      const gameId = String(id);
+      const params = req.params as GetGameParams;
+      const gameId = params.id;
 
       let unsubscribe: (() => void) | undefined;
       let heartbeatInterval: NodeJS.Timeout | undefined;
@@ -98,7 +103,7 @@ export class GameController {
 
       const game = await this.getGameUseCase.execute({
         gameId,
-        authenticatedPlayer: (req as any).player,
+        authenticatedPlayer: req.player,
       });
 
       if (isClosed) {

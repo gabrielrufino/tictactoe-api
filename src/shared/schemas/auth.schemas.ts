@@ -1,0 +1,10 @@
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { z } from 'zod';
+
+extendZodWithOpenApi(z);
+
+export const guestTokenBody = z.object({
+  name: z.string().min(1, 'name cannot be empty').refine(val => !/\s/.test(val), 'name cannot contain spaces').refine(val => !val.includes(':'), 'name cannot contain colons').optional().openapi({ description: 'Name of the guest player', example: 'Alice' }),
+});
+
+export type GuestTokenBody = z.input<typeof guestTokenBody>;

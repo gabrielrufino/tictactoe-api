@@ -1,12 +1,11 @@
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
-extendZodWithOpenApi(z);
+import { guestTokenBody } from '@/shared/schemas/auth.schemas.js';
 
+export { guestTokenBody } from '@/shared/schemas/auth.schemas.js';
+export type { GuestTokenBody } from '@/shared/schemas/auth.schemas.js';
+
+// Wrapper schema for validation middleware and OpenAPI compatibility
 export const guestTokenSchema = z.object({
-  body: z.object({
-    name: z.string().min(1, 'name cannot be empty').refine(val => !/\s/.test(val), 'name cannot contain spaces').refine(val => !val.includes(':'), 'name cannot contain colons').optional().openapi({ description: 'Name of the guest player', example: 'Alice' }),
-  }).optional(),
+  body: guestTokenBody.optional(),
 });
-
-export type GuestTokenSchemaType = typeof guestTokenSchema;

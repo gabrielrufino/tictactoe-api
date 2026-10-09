@@ -1,13 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { CreateGuestTokenUseCase } from '@/use-cases/create-guest-token.use-case.js';
+import type { GuestTokenBody } from '@/adapters/controllers/auth.validator.js';
 
 export class AuthController {
   constructor(private readonly createGuestTokenUseCase: CreateGuestTokenUseCase) {}
 
   public async createGuestToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body || {};
-      const name = body.name;
+      const body = req.body as GuestTokenBody | undefined;
+      const name = body?.name;
 
       const result = this.createGuestTokenUseCase.execute({ name });
 

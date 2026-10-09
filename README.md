@@ -5,23 +5,42 @@ Robust, production-ready Tic-Tac-Toe REST API built with TypeScript, Express, an
 ## Features
 
 - **Game Management**: Create games, list games, retrieve game details, and make moves.
-- **Real-Time Events**: Server-Sent Events (SSE) endpoint (`/games/:id/events`) for real-time game state updates.
+- **Real-Time Events**: Server-Sent Events (SSE) endpoints (`/games/:id/events` and `/matchmaking/events`) for real-time game state and matchmaking updates.
+- **Matchmaking**: Join/leave queues, get match status, and receive real-time matchmaking events via SSE.
+- **Guest Authentication**: Create guest player tokens via `/auth/guest` for anonymous play.
+- **Health Check**: `/health` endpoint for liveness and readiness probes.
 - **Clean Architecture**: Strict separation of concerns (Domain entities, Use Cases, Adapters, Infrastructure).
 - **Validation & OpenAPI**: Request validation using Zod and interactive Swagger UI documentation (`/docs`).
-- **Security & Logging**: Bearer token authentication, HTTP request logging with Pino, and secure headers.
+- **Security & Logging**: Bearer token authentication, CORS support, HTTP request logging with Pino, and secure headers.
 - **Comprehensive Testing**: Unit tests, integration/E2E tests with Vitest, and mutation testing with Stryker.
 
 ## Architecture
 
 - **Domain (`src/domain/`)**: Pure business logic, game rules, entities, and repository interfaces.
-- **Use Cases (`src/use-cases/`)**: Application orchestration and business rules (Create Game, Make Move, etc.).
-- **Adapters (`src/adapters/`)**: Database models (`MongoGameRepository`), HTTP controllers (`GameController`), validators, and event publishers.
-- **Infrastructure (`src/infrastructure/`)**: Express server setup, MongoDB connection, middleware (auth, error handling, validation), and logging.
+- **Use Cases (`src/use-cases/`)**: Application orchestration and business rules (Create Game, Make Move, Join Queue, Leave Queue, Create Guest Token, etc.).
+- **Adapters (`src/adapters/`)**: Database models (`MongoGameRepository`), HTTP controllers (`GameController`, `AuthController`, `MatchmakingController`), validators, event publishers, DTOs/mappers, and ID generators.
+- **Infrastructure (`src/infrastructure/`)**: Express server setup, MongoDB connection, middleware (auth, CORS, error handling, validation), logging, matchmaking queue, and OpenAPI docs.
 
 ## Prerequisites
 
 - Node.js (v20.19.0+ or later)
 - MongoDB (running locally or remote URI)
+
+## Running with Docker
+
+A `docker-compose.yml` is provided to spin up a local MongoDB instance:
+
+```bash
+docker-compose up -d
+```
+
+## Demo
+
+A demo frontend is available in the `demo/` directory:
+
+```bash
+npm run demo
+```
 
 ## Environment Variables
 
@@ -65,8 +84,53 @@ OpenAPI JSON schema is available at:
 
 ## Authentication
 
-All endpoints under `/games` require Bearer Authentication:
+Most endpoints require Bearer Authentication via the `Authorization` header:
 `Authorization: Bearer <API_TOKEN>` (default: `secret-token`).
+
+| Endpoint | Auth Required |
+|---|---|
+| `/health` | No |
+| `/docs` | No |
+| `/openapi.json` | No |
+| `/auth/guest` | No |
+| `/matchmaking/status` | No |
+| `/games/*` | Yes |
+| `/matchmaking/join` | Yes |
+| `/matchmaking/leave` | Yes |
+| `/matchmaking/events` | Yes |
+
+## API Endpoints
+
+### Health Check
+
+```
+GET /health
+```
+
+Returns server and database connectivity status.
+
+### Authentication
+
+```
+POST /auth/guest
+```
+
+Creates a guest player token for anonymous play.
+
+### Matchmaking
+
+- `POST /matchmaking/join` — Join the matchmaking queue
+- `DELETE /matchmaking/leave` — Leave the matchmaking queue
+- `GET /matchmaking/status` — Get current matchmaking status
+- `GET /matchmaking/events` — SSE endpoint for real-time matchmaking events
+
+### Games
+
+- `POST /games` — Create a new game
+- `GET /games` — List all games
+- `GET /games/:id` — Get game details
+- `GET /games/:id/events` — SSE endpoint for real-time game state updates
+- `POST /games/:id/moves` — Make a move
 
 ## Testing
 

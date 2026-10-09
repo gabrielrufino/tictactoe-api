@@ -7,6 +7,7 @@ export default antfu({
     'no-console': 'warn',
     'style/semi': ['error', 'always'],
     'style/quotes': ['error', 'single'],
+    'ts/no-empty-object-type': 'off',
   },
   settings: {
     'import/resolver': {

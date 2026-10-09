@@ -1,17 +1,10 @@
 services:
   mongo:
-    image: mongo:8.0
-    container_name: tictactoe-mongo
+    image: mongo:8
     ports:
       - '127.0.0.1:27017:27017'
     volumes:
       - mongo-data:/data/db
-    healthcheck:
-      test: [CMD, mongosh, --eval, "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
 
 volumes:
   mongo-data:

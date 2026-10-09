@@ -2,6 +2,10 @@ import type { NextFunction, Request, Response } from 'express';
 import crypto from 'node:crypto';
 import process from 'node:process';
 
+export interface AuthenticatedRequest extends Request {
+  player?: string
+}
+
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   const queryToken = req.query.token as string | undefined;
@@ -41,7 +45,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       return;
     }
 
-    (req as any).player = playerId;
+    (req as AuthenticatedRequest).player = playerId;
   }
   else if (token !== expectedToken) {
     res.status(401).json({ error: 'Unauthorized: Invalid token' });

@@ -8,7 +8,7 @@ let playerName = '';
 function saveToken() {
   token = document.getElementById('apiToken').value.trim();
   localStorage.setItem('ttt_token', token);
-  addLog('Token saved', 'success');
+  addLog('Token salvo', 'success');
 }
 
 async function api(path, options = {}) {
@@ -28,42 +28,42 @@ async function api(path, options = {}) {
 async function joinQueue() {
   try {
     playerName = document.getElementById('playerName').value.trim();
-    if (!playerName) return alert('Please enter your name');
+    if (!playerName) return alert('Informe seu nome');
     document.getElementById('joinBtn').disabled = true;
-    document.getElementById('joinBtn').textContent = 'Joining...';
+    document.getElementById('joinBtn').textContent = 'Entrando...';
     const result = await api('/matchmaking/join', {
       method: 'POST',
       body: JSON.stringify({ playerName }),
     });
     if (result.game) {
-      addLog(`Match found with ${result.opponentName}!`, 'success');
+      addLog(`Match encontrado com ${result.opponentName}!`, 'success');
       showMatchBanner(result.opponentName, result.game);
       currentGame = result.game;
       renderGame(result.game);
       connectGameEvents(result.game.id);
     } else {
-      addLog(`In queue (position ${result.queuePosition})`, 'info');
+      addLog(`Na fila (posição ${result.queuePosition})`, 'info');
       updateQueueStatus('waiting');
     }
   } catch (e) {
     addLog(`Erro: ${e.message}`, 'error');
     document.getElementById('joinBtn').disabled = false;
-    document.getElementById('joinBtn').textContent = 'Join Queue';
+    document.getElementById('joinBtn').textContent = 'Entrar na Fila';
   }
 }
 
 async function leaveQueue() {
   try {
-    addLog('Leaving queue...', 'info');
+    addLog('Saindo da fila...', 'info');
     await api('/matchmaking/leave', {
       method: 'DELETE',
       body: JSON.stringify({ playerName }),
     });
     document.getElementById('leaveBtn').classList.add('hidden');
     document.getElementById('joinBtn').disabled = false;
-    document.getElementById('joinBtn').textContent = 'Join Queue';
+    document.getElementById('joinBtn').textContent = 'Entrar na Fila';
     updateQueueStatus('left');
-    addLog('Left the queue', 'success');
+    addLog('Saiu da fila', 'success');
   } catch (e) {
     addLog(`Erro: ${e.message}`, 'error');
   }
@@ -90,7 +90,7 @@ async function makeMove(row, col) {
     });
     currentGame = game;
     renderGame(game);
-    addLog(`${game.turn} played (${row},${col})`, 'success');
+    addLog(`${game.turn} jogou (${row},${col})`, 'success');
   } catch (e) {
     addLog(`Erro: ${e.message}`, 'error');
   }
@@ -100,14 +100,14 @@ function leaveGame() {
   currentGame = null;
   if (eventSource) { eventSource.close(); eventSource = null; }
   document.getElementById('gameCard').classList.add('hidden');
-  addLog('Left the game');
+  addLog('Saiu do jogo');
 }
 
 function showMatchBanner(opponent, game) {
   document.getElementById('matchBanner').classList.remove('hidden');
-  document.getElementById('matchInfo').textContent = `You vs ${opponent}`;
+  document.getElementById('matchInfo').textContent = `Você vs ${opponent}`;
   document.getElementById('joinBtn').disabled = false;
-  document.getElementById('joinBtn').textContent = 'Join Queue';
+  document.getElementById('joinBtn').textContent = 'Entrar na Fila';
 }
 
 function updateQueueStatus(state) {
@@ -116,12 +116,12 @@ function updateQueueStatus(state) {
     area.innerHTML = `
       <div class="queue-status">
         <div class="spinner"></div>
-        <div>Looking for opponent...</div>
-        <div class="players-waiting">You are in queue</div>
+        <div>Procurando adversário...</div>
+        <div class="players-waiting">Você está na fila</div>
       </div>`;
     document.getElementById('leaveBtn').classList.remove('hidden');
   } else if (state === 'left') {
-    area.innerHTML = '<div class="empty-state">You left the queue</div>';
+    area.innerHTML = '<div class="empty-state">Você saiu da fila</div>';
     document.getElementById('leaveBtn').classList.add('hidden');
   }
 }
@@ -131,7 +131,7 @@ function renderGame(game) {
   document.getElementById('gameIdDisplay').textContent = game.id;
 
   const turnEl = document.getElementById('turnIndicator');
-  turnEl.textContent = `Turn: ${game.turn}`;
+  turnEl.textContent = `Vez: ${game.turn}`;
   turnEl.className = `turn-indicator ${game.turn.toLowerCase()}`;
 
   const statusEl = document.getElementById('gameStatus');
@@ -150,8 +150,8 @@ function renderGame(game) {
   playersInfoEl.appendChild(badgeO);
 
   document.getElementById('winnerInfo').textContent =
-    game.status === 'WON' ? `🏆 Winner: ${game.players[game.winner]}` :
-    game.status === 'DRAW' ? '🤝 Draw!' : '';
+    game.status === 'WON' ? `🏆 Vencedor: ${game.players[game.winner]}` :
+    game.status === 'DRAW' ? '🤝 Empate!' : '';
 
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
@@ -177,7 +177,7 @@ async function listGames() {
   try {
     const games = await api('/games');
     renderGamesList(games);
-    addLog(`${games.length} game(s) found`, 'success');
+    addLog(`${games.length} jogo(s) encontrado(s)`, 'success');
   } catch (e) {
     addLog(`Erro: ${e.message}`, 'error');
   }
@@ -189,7 +189,7 @@ function renderGamesList(games) {
   if (!games.length) {
     const li = document.createElement('li');
     li.className = 'empty-state';
-    li.textContent = 'No games';
+    li.textContent = 'Nenhum jogo';
     ul.appendChild(li);
     return;
   }
@@ -203,7 +203,7 @@ function renderGamesList(games) {
     li.appendChild(span);
 
     const btn = document.createElement('button');
-    btn.textContent = 'Join';
+    btn.textContent = 'Entrar';
     btn.onclick = () => loadGame(g.id);
     li.appendChild(btn);
 
@@ -259,7 +259,7 @@ function connectGameEvents(gameId) {
     headers: { Authorization: `Bearer ${token}` },
     onopen: () => {
       document.getElementById('connDot').className = 'connection-dot online';
-      addLog('Connected to game stream', 'success');
+      addLog('Conectado ao stream do jogo', 'success');
     },
     onmessage: (data) => {
       currentGame = data;
@@ -267,7 +267,7 @@ function connectGameEvents(gameId) {
     },
     onerror: () => {
       document.getElementById('connDot').className = 'connection-dot offline';
-      addLog('Game stream disconnected', 'error');
+      addLog('Stream do jogo desconectado', 'error');
     },
   });
 }
@@ -275,14 +275,13 @@ function connectGameEvents(gameId) {
 function connectMatchmakingEvents() {
   if (matchmakingSource) matchmakingSource.close();
   matchmakingSource = connectSSE(`${API_BASE}/matchmaking/events`, {
-    headers: { Authorization: `Bearer ${token}` },
-    onopen: () => addLog('Connected to matchmaking stream', 'success'),
+    onopen: () => addLog('Conectado ao stream de matchmaking', 'success'),
     onmessage: (event) => {
       try {
         addLog(`[MATCHMAKING] ${event.type}${event.playerName ? ': ' + event.playerName : ''}${event.opponentName ? ' vs ' + event.opponentName : ''}${event.gameId ? ' jogo:' + event.gameId : ''}`, 'info');
 
         if (event.type === 'MATCH_FOUND' && event.gameId) {
-          addLog('Match found! Loading game...', 'success');
+          addLog('Match encontrado! Carregando jogo...', 'success');
           loadGame(event.gameId);
         }
         if (event.type === 'PLAYER_LEFT') {
@@ -291,7 +290,7 @@ function connectMatchmakingEvents() {
       } catch {}
     },
     onerror: () => {
-      addLog('Matchmaking stream disconnected', 'error');
+      addLog('Stream de matchmaking desconectado', 'error');
     },
   });
 }

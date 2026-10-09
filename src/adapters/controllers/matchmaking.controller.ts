@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from 'express';
 import type { JoinQueueUseCase } from '@/use-cases/join-queue.use-case.js';
 import type { LeaveQueueUseCase } from '@/use-cases/leave-queue.use-case.js';
 import type { MatchmakingEvent, MatchmakingEventPublisher, MatchmakingQueue } from '@/use-cases/ports/matchmaking-event.port.js';
+import type { GetStatusQuery, JoinQueueBody, LeaveQueueBody } from '@/adapters/controllers/matchmaking.validator.js';
 import { GameMapper } from '@/adapters/controllers/dto/game.mapper.js';
 
 export class MatchmakingController {
@@ -15,8 +16,8 @@ export class MatchmakingController {
 
   public async join(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const playerName = req.body.playerName;
-      const result = await this.joinQueueUseCase.execute({ playerName });
+      const body = req.body as JoinQueueBody;
+      const result = await this.joinQueueUseCase.execute({ playerName: body.playerName });
 
       if (result.game) {
         res.status(201).json({
@@ -39,8 +40,8 @@ export class MatchmakingController {
 
   public async leave(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const playerName = req.body.playerName;
-      await this.leaveQueueUseCase.execute({ playerName });
+      const body = req.body as LeaveQueueBody;
+      await this.leaveQueueUseCase.execute({ playerName: body.playerName });
       res.status(200).json({ message: 'Left matchmaking queue' });
     }
     catch (error) {
@@ -50,7 +51,8 @@ export class MatchmakingController {
 
   public async getStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const includePlayers = (req as any).query?.includePlayers ?? false;
+      const query = req.query as GetStatusQuery | undefined;
+      const includePlayers = query?.includePlayers ?? false;
       const players = this.queue.getWaitingPlayers();
       const response: { waitingPlayers?: string[], playerCount: number } = { playerCount: players.length };
       if (includePlayers) {

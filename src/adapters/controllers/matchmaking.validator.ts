@@ -1,26 +1,19 @@
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
-extendZodWithOpenApi(z);
+import { getStatusQuery, joinQueueBody, leaveQueueBody } from '@/shared/schemas/matchmaking.schemas.js';
 
+export { getStatusQuery, joinQueueBody, leaveQueueBody } from '@/shared/schemas/matchmaking.schemas.js';
+export type { GetStatusQuery, JoinQueueBody, LeaveQueueBody } from '@/shared/schemas/matchmaking.schemas.js';
+
+// Wrapper schemas for validation middleware and OpenAPI compatibility
 export const joinQueueSchema = z.object({
-  body: z.object({
-    playerName: z.string().min(1, 'playerName is required').openapi({ description: 'Name of the player joining the queue', example: 'Alice' }),
-  }),
+  body: joinQueueBody,
 });
 
 export const leaveQueueSchema = z.object({
-  body: z.object({
-    playerName: z.string().min(1, 'playerName is required').openapi({ description: 'Name of the player leaving the queue', example: 'Alice' }),
-  }),
+  body: leaveQueueBody,
 });
 
 export const getMatchmakingStatusSchema = z.object({
-  query: z.object({
-    includePlayers: z.enum(['true', 'false']).optional().transform(val => val === 'true').openapi({ description: 'Include waiting player names', default: false }),
-  }),
+  query: getStatusQuery,
 });
-
-export type JoinQueueSchemaType = typeof joinQueueSchema;
-export type LeaveQueueSchemaType = typeof leaveQueueSchema;
-export type GetMatchmakingStatusSchemaType = typeof getMatchmakingStatusSchema;
